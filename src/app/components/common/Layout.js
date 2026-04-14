@@ -17,37 +17,30 @@ import {
   SidebarTrigger,
 } from "@/app/components/ui/sidebar";
 import { usePathname } from 'next/navigation';
-import { showToast } from 'nextjs-toast-notify';
-
-// Extraemos la lógica fuera del componente para que no se redefine en cada render
-const BREADCRUMBS_MAP = {
-  'transactions': 'Transacciones',
-  'reports': 'Reportes',
-  'accounts': 'Cuentas',
-  'settings': 'Configuración',
-  'profile': 'Perfil'
-};
+import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Layout({ children }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   // Memorizamos los breadcrumbs para rendimiento
   const breadcrumbs = useMemo(() => {
     const pathSegments = pathname.split('/').filter(Boolean);
-    const list = [{ title: 'Dashboard', href: '/', isLast: pathSegments.length === 0 }];
+    const list = [{ title: t('nav.dashboard'), href: '/', isLast: pathSegments.length === 0 }];
     
     let currentPath = '';
     pathSegments.forEach((segment, index) => {
       currentPath += `/${segment}`;
       const isLast = index === pathSegments.length - 1;
       list.push({
-        title: BREADCRUMBS_MAP[segment] || segment.charAt(0).toUpperCase() + segment.slice(1),
+        title: t(`nav.${segment}`, { defaultValue: segment.charAt(0).toUpperCase() + segment.slice(1) }),
         href: currentPath,
         isLast
       });
     });
     return list;
-  }, [pathname]);
+  }, [pathname, t]);
 
   return (
     <SidebarProvider>
@@ -73,10 +66,20 @@ export default function Layout({ children }) {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <main className="flex-1 p-4">
-          {children}
+        <main className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="h-full w-full p-4"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
-     
       </SidebarInset>
     </SidebarProvider>
   );

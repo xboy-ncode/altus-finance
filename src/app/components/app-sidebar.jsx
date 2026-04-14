@@ -2,26 +2,23 @@
 
 import * as React from "react"
 import {
-  ArrowUpDownIcon,
-  BookOpen,
+  ArrowUpDown,
   Bot,
   ClipboardPenIcon,
   Command,
-  Frame,
   GemIcon,
   Home,
   LandmarkIcon,
   LifeBuoy,
   Map,
-  PieChart,
   Send,
   Settings2,
-  SquareTerminal,
   Moon,
   Sun,
 } from "lucide-react"
 
 import { useTheme } from "next-themes"
+import { useTranslation } from "react-i18next"
 
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -43,9 +40,9 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Dev Joel",
+    email: "dev.joel@altus.io",
+    avatar: "/icon-512.png",
   },
   navMain: [
     {
@@ -55,38 +52,24 @@ const data = {
       isActive: true,
     },
     {
-      title: "Reports",
-      url: "/reports",
-      icon: ClipboardPenIcon,
-
+      title: "Transacciones",
+      url: "/transactions",
+      icon: ArrowUpDown,
     },
     {
-      title: "Accounts",
+      title: "Reportes",
+      url: "/reports",
+      icon: ClipboardPenIcon,
+    },
+    {
+      title: "Cuentas",
       url: "/accounts",
       icon: LandmarkIcon,
     },
     {
-      title: "Settings",
+      title: "Configuración",
       url: "/settings",
       icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Themes",
-          url: "#",
-        },
-        {
-          title: "AI Assistance",
-          url: "#",
-        },
-        {
-          title: "Data & Privacy",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
@@ -104,28 +87,26 @@ const data = {
   features: [
     {
       name: "Wishlists",
-      url: "#",
+      url: "/wishlists",
       icon: GemIcon,
     },
     {
       name: "Travel Planner",
-      url: "#",
+      url: "/travel",
       icon: Map,
     },
     {
       name: "AI Assistant",
-      url: "#",
+      url: "/assistant",
       icon: Bot,
     },
-
   ],
 }
 
-export function AppSidebar({
-
-  ...props
-}) {
-  const { theme, setTheme } = useTheme();
+export function AppSidebar({ ...props }) {
+  const { theme, setTheme } = useTheme()
+  const { t } = useTranslation()
+  
   // Estado para evitar errores de hidratación
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
@@ -133,6 +114,19 @@ export function AppSidebar({
   if (!mounted) return null
 
   const isDark = theme === "dark"
+
+  // Dynamic translated nav entries
+  const translatedData = {
+    ...data,
+    navMain: data.navMain.map(item => ({
+      ...item,
+      title: t(`nav.${item.url.split('/')[1] || 'dashboard'}`)
+    })),
+    features: data.features.map(item => ({
+      ...item,
+      name: t(`nav.${item.url.split('/')[1]}`)
+    }))
+  };
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -142,12 +136,12 @@ export function AppSidebar({
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
                 <div
-                  className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
+                  className="bg-transparent flex aspect-square size-9 items-center justify-center overflow-hidden">
+                  <img src="/logo-navbar.png" alt="Altus Logo" className="size-full object-contain" />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">FinanceTracker</span>
-                  <span className="truncate text-xs">Plan Status</span>
+                <div className="grid flex-1 text-left text-sm leading-tight ml-1">
+                  <span className="truncate font-bold text-base tracking-tight">Altus</span>
+                  <span className="truncate text-xs text-muted-foreground">Finance Dashboard</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -155,8 +149,8 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects features={data.features} />
+        <NavMain items={translatedData.navMain} />
+        <NavProjects features={translatedData.features} />
         <div className="px-4 py-2 mt-4 border-t border-sidebar-border/50">
           <div className="flex items-center justify-between p-2 rounded-lg bg-sidebar-accent/50 transition-colors duration-300">
             {/* Contenedor Izquierdo: Icono + Texto */}

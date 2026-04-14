@@ -1,10 +1,9 @@
+'use client';
+
 import React from 'react';
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription
 } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
 import {
@@ -14,22 +13,17 @@ import {
     PiggyBank,
     DollarSign
 } from 'lucide-react';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const OverviewCards = ({ data }) => {
-    // Validación de datos
-    if (!data) {
-        return null;
-    }
+    const { formatCurrency } = useSettings();
+    const { t } = useTranslation();
+
+    if (!data) return null;
 
     const { totalBalance = {}, income = {}, expenses = {}, savings = {} } = data;
-
-    const formatCurrency = (amount) => {
-        if (amount === undefined || amount === null) return '€0.00';
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR'
-        }).format(amount);
-    };
 
     const calculatePercentage = (current, previous) => {
         if (!previous || previous === 0) return 0;
@@ -64,70 +58,81 @@ const OverviewCards = ({ data }) => {
 
     const cards = [
         {
-            title: 'Balance Total',
+            title: t('dashboard.totalBalance'),
             value: totalBalance.current || 0,
             previous: totalBalance.previous || 0,
             icon: Wallet,
             type: 'balance',
-            iconColor: 'text-blue-600',
-            iconBg: 'bg-blue-50'
+            gradient: 'from-blue-500/15 to-blue-600/5 dark:from-blue-500/20 dark:to-blue-600/10',
+            iconColor: 'text-blue-600 dark:text-blue-400',
+            iconBg: 'bg-blue-500/10 dark:bg-blue-500/20',
         },
         {
-            title: 'Ingresos',
+            title: t('dashboard.incomes'),
             value: income.current || 0,
             previous: income.previous || 0,
             icon: DollarSign,
             type: 'income',
-            iconColor: 'text-green-600',
-            iconBg: 'bg-green-50'
+            gradient: 'from-emerald-500/15 to-emerald-600/5 dark:from-emerald-500/20 dark:to-emerald-600/10',
+            iconColor: 'text-emerald-600 dark:text-emerald-400',
+            iconBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
         },
         {
-            title: 'Gastos',
+            title: t('dashboard.expenses'),
             value: expenses.current || 0,
             previous: expenses.previous || 0,
             icon: TrendingDown,
             type: 'expenses',
-            iconColor: 'text-red-600',
-            iconBg: 'bg-red-50'
+            gradient: 'from-rose-500/15 to-rose-600/5 dark:from-rose-500/20 dark:to-rose-600/10',
+            iconColor: 'text-rose-600 dark:text-rose-400',
+            iconBg: 'bg-rose-500/10 dark:bg-rose-500/20',
         },
         {
-            title: 'Ahorros',
+            title: t('dashboard.savings'),
             value: savings.current || 0,
             previous: savings.previous || 0,
             icon: PiggyBank,
             type: 'savings',
-            iconColor: 'text-purple-600',
-            iconBg: 'bg-purple-50'
+            gradient: 'from-violet-500/15 to-violet-600/5 dark:from-violet-500/20 dark:to-violet-600/10',
+            iconColor: 'text-violet-600 dark:text-violet-400',
+            iconBg: 'bg-violet-500/10 dark:bg-violet-500/20',
         }
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {cards.map((card, index) => {
                 const Icon = card.icon;
                 return (
-                    <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-2 flex-1">
-                                    <p className="text-sm font-medium text-muted-foreground">
-                                        {card.title}
-                                    </p>
-                                    <div className="space-y-1">
-                                        <p className="text-2xl font-bold">
-                                            {formatCurrency(card.value)}
+                    <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                    >
+                        <Card className={`border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-br ${card.gradient} group`}>
+                            <CardContent className="p-5">
+                                <div className="flex items-start justify-between">
+                                    <div className="space-y-2 flex-1">
+                                        <p className="text-sm font-medium text-muted-foreground">
+                                            {card.title}
                                         </p>
-                                        {card.previous !== undefined && card.previous !== null && (
-                                            renderTrend(card.value, card.previous, card.type)
-                                        )}
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold tracking-tight">
+                                                {formatCurrency(card.value)}
+                                            </p>
+                                            {card.previous !== undefined && card.previous !== null && (
+                                                renderTrend(card.value, card.previous, card.type)
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className={`p-3 rounded-xl ${card.iconBg} flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                                        <Icon className={`h-6 w-6 ${card.iconColor}`} />
                                     </div>
                                 </div>
-                                <div className={`p-3 rounded-full ${card.iconBg} flex-shrink-0`}>
-                                    <Icon className={`h-6 w-6 ${card.iconColor}`} />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
                 );
             })}
         </div>

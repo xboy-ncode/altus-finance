@@ -20,14 +20,19 @@ export const mockDashboardData = {
         }
     },
 
-    // Datos para el gráfico de balance mensual
     monthlyBalance: [
         { month: 'Ene', income: 3200, expenses: 2800 },
         { month: 'Feb', income: 3100, expenses: 2900 },
         { month: 'Mar', income: 3400, expenses: 2700 },
         { month: 'Abr', income: 3300, expenses: 2600 },
         { month: 'May', income: 3500, expenses: 2250 },
-        { month: 'Jun', income: 3450, expenses: 2400 }
+        { month: 'Jun', income: 3450, expenses: 2400 },
+        { month: 'Jul', income: 4200, expenses: 2700 },
+        { month: 'Ago', income: 3800, expenses: 3100 },
+        { month: 'Sep', income: 3950, expenses: 2850 },
+        { month: 'Oct', income: 4100, expenses: 2650 },
+        { month: 'Nov', income: 4300, expenses: 2900 },
+        { month: 'Dic', income: 5100, expenses: 3800 }
     ],
 
     // Datos para el gráfico de gastos por categoría
@@ -93,8 +98,8 @@ export const mockDashboardData = {
             amount: 850,
             dueDate: '2025-05-05',
             isPaid: false,
-            icon: '🏠',
-            color: '#e8f4fd'
+            iconType: 'home',
+            color: 'bg-blue-500/10 text-blue-500'
         },
         {
             id: 2,
@@ -102,8 +107,8 @@ export const mockDashboardData = {
             amount: 85.20,
             dueDate: '2025-04-22',
             isPaid: false,
-            icon: '💡',
-            color: '#fff8e1'
+            iconType: 'zap',
+            color: 'bg-amber-500/10 text-amber-500'
         },
         {
             id: 3,
@@ -111,8 +116,8 @@ export const mockDashboardData = {
             amount: 59.90,
             dueDate: '2025-04-15',
             isPaid: true,
-            icon: '🌐',
-            color: '#e6f7ee'
+            iconType: 'wifi',
+            color: 'bg-emerald-500/10 text-emerald-500'
         },
         {
             id: 4,
@@ -120,8 +125,8 @@ export const mockDashboardData = {
             amount: 180.50,
             dueDate: '2025-04-18',
             isPaid: false,
-            icon: '🚗',
-            color: '#ffe9e9'
+            iconType: 'car',
+            color: 'bg-rose-500/10 text-rose-500'
         }
     ]
 };

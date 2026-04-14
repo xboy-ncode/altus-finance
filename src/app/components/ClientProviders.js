@@ -1,8 +1,22 @@
 'use client';
 import React from 'react';
 import { ThemeProvider } from './theme-provider';
-import Layout from './common/Layout'; // Corregida la ruta relativa
-import { showToast } from 'nextjs-toast-notify';
+import { SettingsProvider, useSettings } from './contexts/SettingsContext';
+import Layout from './common/Layout';
+import { I18nextProvider } from 'react-i18next';
+import i18n from '../i18n/i18n';
+
+function LanguageUpdater({ children }) {
+  const { settings } = useSettings();
+  
+  React.useEffect(() => {
+    if (settings.language && i18n.language !== settings.language) {
+      i18n.changeLanguage(settings.language);
+    }
+  }, [settings.language]);
+
+  return children;
+}
 
 export default function ClientProviders({ children }) {
   return (
@@ -12,11 +26,15 @@ export default function ClientProviders({ children }) {
       enableSystem
       disableTransitionOnChange
     >
-      <Layout>
-
-        {children}
-           <showToast position="top-right" />
-      </Layout>
+      <SettingsProvider>
+        <I18nextProvider i18n={i18n}>
+          <LanguageUpdater>
+            <Layout>
+              {children}
+            </Layout>
+          </LanguageUpdater>
+        </I18nextProvider>
+      </SettingsProvider>
     </ThemeProvider>
   );
 }

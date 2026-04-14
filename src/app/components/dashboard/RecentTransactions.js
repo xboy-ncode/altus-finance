@@ -1,29 +1,18 @@
 import React from 'react';
 import { Badge } from '@/app/components/ui/badge';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
+import { useTranslation } from 'react-i18next';
 
 const RecentTransactions = ({ transactions = [] }) => {
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR'
-        }).format(amount);
-    };
-
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        }).format(date);
-    };
+    const { formatCurrency, formatDate } = useSettings();
+    const { t } = useTranslation();
 
     return (
         <div className="space-y-3">
             {transactions.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
-                    No hay transacciones recientes
+                    {t('transactions.noTransactions')}
                 </div>
             ) : (
                 transactions.map((transaction) => {

@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
 import {
-    DollarOutlined,
-    PlusOutlined,
-    MinusOutlined,
-    SwapOutlined,
-    ShoppingOutlined,
-    CarOutlined,
-    HomeOutlined,
-    MedicineBoxOutlined,
-    BookOutlined,
-    CoffeeOutlined,
-    BulbOutlined,
-    AppstoreOutlined,
-    CloseOutlined
-} from '@ant-design/icons';
-import './AddTransactionForm.css';
+    DollarSign,
+    Plus,
+    Minus,
+    ArrowLeftRight,
+    ShoppingBag,
+    Car,
+    Home,
+    Pill,
+    BookOpen,
+    Coffee,
+    Lightbulb,
+    LayoutGrid,
+    X
+} from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/app/components/ui/dialog';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
+import { Button } from '@/app/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { Badge } from '@/app/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
-const AddTransactionForm = ({ onAddTransaction, onCancel }) => {
+export default function AddTransactionForm({ onAddTransaction, onCancel }) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         description: '',
         amount: '',
@@ -31,85 +44,34 @@ const AddTransactionForm = ({ onAddTransaction, onCancel }) => {
 
     const [tagInput, setTagInput] = useState('');
 
-    // Categories with their corresponding icons
     const categories = [
-        { name: 'Alimentación', icon: <CoffeeOutlined /> },
-        { name: 'Transporte', icon: <CarOutlined /> },
-        { name: 'Entretenimiento', icon: <AppstoreOutlined /> },
-        { name: 'Servicios', icon: <BulbOutlined /> },
-        { name: 'Compras', icon: <ShoppingOutlined /> },
-        { name: 'Salud', icon: <MedicineBoxOutlined /> },
-        { name: 'Educación', icon: <BookOutlined /> },
-        { name: 'Vivienda', icon: <HomeOutlined /> },
-        { name: 'Otros', icon: <AppstoreOutlined /> }
+        { name: 'Alimentación', icon: Coffee },
+        { name: 'Transporte', icon: Car },
+        { name: 'Entretenimiento', icon: LayoutGrid },
+        { name: 'Servicios', icon: Lightbulb },
+        { name: 'Compras', icon: ShoppingBag },
+        { name: 'Salud', icon: Pill },
+        { name: 'Educación', icon: BookOpen },
+        { name: 'Vivienda', icon: Home },
+        { name: 'Otros', icon: LayoutGrid }
     ];
 
-    // Transaction types
     const types = [
-        { name: 'Ingreso', icon: <PlusOutlined />, className: 'income' },
-        { name: 'Gasto', icon: <MinusOutlined />, className: 'expense' },
-        { name: 'Transferencia', icon: <SwapOutlined />, className: 'transfer' }
+        { name: 'Ingreso', icon: Plus, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500' },
+        { name: 'Gasto', icon: Minus, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500' },
+        { name: 'Transferencia', icon: ArrowLeftRight, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500' }
     ];
 
-    // Account options
     const accounts = ['Efectivo', 'Tarjeta de Crédito', 'Tarjeta de Débito', 'Cuenta Bancaria', 'Otro'];
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleTypeSelect = (type) => {
-        setFormData(prev => ({
-            ...prev,
-            type
-        }));
-    };
-
-    const handleCategorySelect = (category) => {
-        setFormData(prev => ({
-            ...prev,
-            category
-        }));
-    };
-
-    const handleTagInputChange = (e) => {
-        setTagInput(e.target.value);
-    };
-
-    const handleTagInputKeyDown = (e) => {
-        if (e.key === 'Enter' && tagInput.trim()) {
-            e.preventDefault();
-            if (!formData.tags.includes(tagInput.trim())) {
-                setFormData(prev => ({
-                    ...prev,
-                    tags: [...prev.tags, tagInput.trim()]
-                }));
-            }
-            setTagInput('');
-        }
-    };
-
-    const handleRemoveTag = (tagToRemove) => {
-        setFormData(prev => ({
-            ...prev,
-            tags: prev.tags.filter(tag => tag !== tagToRemove)
-        }));
-    };
 
     const handleSubmit = (e) => {
         if (e) e.preventDefault();
-
-        // Validate required fields
+        
         if (!formData.description || !formData.amount || !formData.date || !formData.type || !formData.category) {
-            alert('Por favor complete todos los campos obligatorios');
+            alert(t('transactions.addFieldsRequired', 'Por favor complete todos los campos obligatorios'));
             return;
         }
 
-        // Create new transaction object
         const newTransaction = {
             id: Date.now().toString(),
             description: formData.description,
@@ -124,162 +86,126 @@ const AddTransactionForm = ({ onAddTransaction, onCancel }) => {
         };
 
         onAddTransaction(newTransaction);
-        onCancel(); // Close form after submit
-    };
-
-    // Handle clicks on the overlay to close the form
-    const handleOverlayClick = (e) => {
-        if (e.target.className === 'add-transaction-form-overlay') {
-            onCancel();
-        }
     };
 
     return (
-        <div className="add-transaction-form-overlay" onClick={handleOverlayClick}>
-            <div className="add-transaction-form">
-                <div className="form-header">
-                    <h3>Añadir Nueva Transacción</h3>
-                    <button className="close-button" onClick={onCancel}><CloseOutlined /></button>
-                </div>
+        <Dialog open={true} onOpenChange={(open) => { if (!open) onCancel(); }}>
+            <DialogContent className="sm:max-w-[500px] overflow-y-auto max-h-[90vh]">
+                <DialogHeader>
+                    <DialogTitle>{t('transactions.addTitle', 'Añadir Nueva Transacción')}</DialogTitle>
+                </DialogHeader>
 
-                <div className="form-container">
-                    {/* Transaction Type Selection */}
-                    <div className="form-group">
-                        <label>Tipo de Transacción</label>
-                        <div className="type-selector">
-                            {types.map(type => (
-                                <div
-                                    key={type.name}
-                                    className={`type-option ${type.className} ${formData.type === type.name ? 'selected' : ''}`}
-                                    onClick={() => handleTypeSelect(type.name)}
-                                >
-                                    {type.icon} {type.name}
-                                </div>
-                            ))}
+                <div className="space-y-5 py-4">
+                    {/* Type Selector  */}
+                    <div className="space-y-2">
+                        <Label>{t('transactions.type', 'Tipo de Transacción')}</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                            {types.map(type => {
+                                const Icon = type.icon;
+                                const isSelected = formData.type === type.name;
+                                return (
+                                    <button
+                                        key={type.name}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, type: type.name })}
+                                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all gap-1.5 ${isSelected ? `${type.border} ${type.bg}` : 'border-transparent hover:bg-muted bg-muted/50'}`}
+                                    >
+                                        <Icon className={`h-5 w-5 ${isSelected ? type.color : 'text-muted-foreground'}`} />
+                                        <span className={`text-xs font-semibold ${isSelected ? type.color : 'text-muted-foreground'}`}>{type.name}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Descripción*</label>
-                            <input
-                                type="text"
-                                name="description"
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>{t('transactions.description', 'Descripción')}*</Label>
+                            <Input
                                 value={formData.description}
-                                onChange={handleChange}
-                                placeholder="Ej: Compra de comestibles"
-                                required
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                placeholder="Ej: Supermercado"
                             />
                         </div>
-
-                        <div className="form-group">
-                            <label>Importe (€)*</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>{t('transactions.amount', 'Monto')}*</Label>
+                            <Input
                                 type="number"
-                                name="amount"
-                                value={formData.amount}
-                                onChange={handleChange}
                                 placeholder="0.00"
-                                step="0.01"
-                                min="0"
-                                required
+                                value={formData.amount}
+                                onChange={e => setFormData({ ...formData, amount: e.target.value })}
                             />
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Fecha*</label>
-                            <input
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>{t('transactions.date', 'Fecha')}*</Label>
+                            <Input
                                 type="date"
-                                name="date"
                                 value={formData.date}
-                                onChange={handleChange}
-                                required
+                                onChange={e => setFormData({ ...formData, date: e.target.value })}
                             />
                         </div>
-
-                        <div className="form-group">
-                            <label>Comercio</label>
-                            <input
-                                type="text"
-                                name="merchant"
-                                value={formData.merchant}
-                                onChange={handleChange}
-                                placeholder="Ej: Supermercado XYZ"
-                            />
+                        <div className="space-y-2">
+                            <Label>{t('transactions.account', 'Cuenta')}*</Label>
+                            <Select value={formData.account} onValueChange={v => setFormData({ ...formData, account: v })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    {accounts.map(acc => <SelectItem key={acc} value={acc}>{acc}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label>Categoría*</label>
-                        <div className="category-selector">
-                            {categories.map(category => (
-                                <div
-                                    key={category.name}
-                                    className={`category-option ${formData.category === category.name ? 'selected' : ''}`}
-                                    onClick={() => handleCategorySelect(category.name)}
-                                >
-                                    {category.icon} {category.name}
-                                </div>
-                            ))}
+                    <div className="space-y-2">
+                        <Label>{t('transactions.category', 'Categoría')}*</Label>
+                        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                            {categories.map(cat => {
+                                const Icon = cat.icon;
+                                const isSelected = formData.category === cat.name;
+                                return (
+                                    <button
+                                        key={cat.name}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, category: cat.name })}
+                                        className={`flex-shrink-0 flex items-center justify-center p-2.5 rounded-lg border-2 transition-all ${isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border/50 hover:bg-muted bg-card text-muted-foreground'}`}
+                                        title={cat.name}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Icon className="h-4 w-4" />
+                                            {isSelected && <span className="text-xs font-semibold">{cat.name}</span>}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label>Cuenta</label>
-                        <select
-                            name="account"
-                            value={formData.account}
-                            onChange={handleChange}
-                        >
-                            {accounts.map(account => (
-                                <option key={account} value={account}>{account}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Notas</label>
-                        <textarea
-                            name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            placeholder="Añade notas adicionales aquí..."
-                            rows="2"
+                    <div className="space-y-2">
+                        <Label>{t('transactions.merchant', 'Comercio')}</Label>
+                        <Input
+                            value={formData.merchant}
+                            onChange={e => setFormData({ ...formData, merchant: e.target.value })}
+                            placeholder="Ej: Amazon"
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label>Etiquetas</label>
-                        <div className="tags-input">
-                            {formData.tags.map(tag => (
-                                <div key={tag} className="tag">
-                                    {tag}
-                                    <span className="tag-close" onClick={() => handleRemoveTag(tag)}>
-                                        <CloseOutlined style={{ fontSize: '10px' }} />
-                                    </span>
-                                </div>
-                            ))}
-                            <input
-                                type="text"
-                                className="tag-input"
-                                value={tagInput}
-                                onChange={handleTagInputChange}
-                                onKeyDown={handleTagInputKeyDown}
-                                placeholder={formData.tags.length === 0 ? "Añadir etiquetas (presiona Enter)" : ""}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="form-actions">
-                        <button type="button" className="btn btn-cancel" onClick={onCancel}>Cancelar</button>
-                        <button type="button" className="btn btn-save" onClick={handleSubmit}>Guardar</button>
+                    <div className="space-y-2">
+                        <Label>{t('transactions.notes', 'Notas')}</Label>
+                        <Input
+                            value={formData.notes}
+                            onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                            placeholder="Opcional..."
+                        />
                     </div>
                 </div>
-            </div>
-        </div>
-    );
-};
 
-export default AddTransactionForm;
+                <DialogFooter>
+                    <Button variant="outline" onClick={onCancel}>{t('common.cancel', 'Cancelar')}</Button>
+                    <Button onClick={handleSubmit}>{t('common.save', 'Guardar')}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
