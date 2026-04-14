@@ -11,7 +11,6 @@
 </p>
 
 <p align="center">
-  <!-- Reemplazar con el path real del screenshot en la demo -->
   <img src="./public/banner.png" alt="Altus Dashboard Banner" width="800" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
 </p>
 
