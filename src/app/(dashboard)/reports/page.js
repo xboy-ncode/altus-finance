@@ -22,9 +22,9 @@ import {
     PieChart as PieChartIcon,
     Activity,
 } from 'lucide-react';
-import { mockTransactionsData } from '../components/utils/mockData';
-import { useSettings } from '../components/contexts/SettingsContext';
-import PageLoader from '../components/ui/page-loader';
+import { mockTransactionsData } from '@/app/components/utils/mockData';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
+import PageLoader from '@/app/components/ui/page-loader';
 import {
     LineChart,
     Line,

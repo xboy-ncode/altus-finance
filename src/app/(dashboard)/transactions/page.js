@@ -38,10 +38,10 @@ import {
     ChevronLeft,
     ChevronRight,
 } from 'lucide-react';
-import { mockTransactionsData } from '../components/utils/mockData';
-import { useSettings } from '../components/contexts/SettingsContext';
-import PageLoader from '../components/ui/page-loader';
-import AddTransactionForm from '../components/transactions/AddTransactionForm';
+import { mockTransactionsData } from '@/app/components/utils/mockData';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
+import PageLoader from '@/app/components/ui/page-loader';
+import AddTransactionForm from '@/app/components/transactions/AddTransactionForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 

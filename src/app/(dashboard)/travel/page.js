@@ -14,7 +14,7 @@ import {
     DialogFooter,
 } from '@/app/components/ui/dialog';
 import PageLoader from '@/app/components/ui/page-loader';
-import { useSettings } from '../components/contexts/SettingsContext';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Calendar, MapPin, Wallet, Briefcase, Plus, Check, ChevronRight } from 'lucide-react';

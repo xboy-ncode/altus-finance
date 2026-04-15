@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/app/comp
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import PageLoader from '@/app/components/ui/page-loader';
-import { useSettings } from '../components/contexts/SettingsContext';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Send, User, Sparkles, TrendingDown, TrendingUp, RefreshCcw } from 'lucide-react';

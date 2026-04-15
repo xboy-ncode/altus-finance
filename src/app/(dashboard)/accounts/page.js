@@ -49,7 +49,7 @@ import {
     Edit,
     AlertTriangle
 } from 'lucide-react';
-import { useSettings } from '../components/contexts/SettingsContext';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 

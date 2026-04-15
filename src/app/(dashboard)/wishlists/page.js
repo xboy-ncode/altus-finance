@@ -20,7 +20,7 @@ import {
     DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu';
 import PageLoader from '@/app/components/ui/page-loader';
-import { useSettings } from '../components/contexts/SettingsContext';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, Plus, MoreVertical, Edit, Trash2, Heart, Car, MapPin, Laptop, ShieldAlert, Sparkles } from 'lucide-react';

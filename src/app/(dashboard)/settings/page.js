@@ -48,7 +48,7 @@ import {
     DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { useTheme } from 'next-themes';
-import { useSettings, THEME_PRESETS } from '../components/contexts/SettingsContext';
+import { useSettings, THEME_PRESETS } from '@/app/components/contexts/SettingsContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import PageLoader from '@/app/components/ui/page-loader';
