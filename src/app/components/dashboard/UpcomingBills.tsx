@@ -159,7 +159,7 @@ const UpcomingBills = ({ bills = [] }) => {
                                 <div className="font-semibold text-sm">
                                     {formatCurrency(bill.amount)}
                                 </div>
-                                <Badge variant={variant as any} className="text-xs">
+                                <Badge variant={variant} className="text-xs">
                                     {getStatusText()}
                                 </Badge>
                             </div>

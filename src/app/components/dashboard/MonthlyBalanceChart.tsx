@@ -40,35 +40,30 @@ export function MonthlyBalanceChart({ data, primaryColor, secondaryColor }: Char
   } satisfies ChartConfig
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardContent className="px-0">
-        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-          <BarChart accessibilityLayer data={data}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <YAxis 
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              tickFormatter={(value) => `$${value}`}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
-            />
-            {/* Usamos las variables definidas en chartConfig */}
-            <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <ChartContainer config={chartConfig} className="w-full h-full min-h-[300px]">
+      <BarChart accessibilityLayer data={data}>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <XAxis
+          dataKey="month"
+          tickLine={false}
+          tickMargin={10}
+          axisLine={false}
+          tickFormatter={(value) => value.slice(0, 3)}
+        />
+        <YAxis 
+          tickLine={false}
+          axisLine={false}
+          tickMargin={10}
+          tickFormatter={(value) => `$${value}`}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent indicator="dashed" />}
+        />
+        <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ChartContainer>
   )
 }
 

@@ -55,33 +55,28 @@ export function ExpenseByCategoryChart({ data = [] }: { data: ExpenseData[] }) {
   }, [data])
 
   return (
-    <Card className="flex flex-col border-none bg-transparent shadow-none">
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[500px] w-full"
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie 
-              data={processedData} 
-              dataKey="amount" 
-              nameKey="configKey" // Vincula el segmento con la clave del ChartConfig
-              stroke="hsl(var(--background))"
-              strokeWidth={2}
-            />
-            <ChartLegend
-              // nameKey="configKey" es vital para que ChartLegendContent busque en el config
-              content={<ChartLegendContent nameKey="configKey" />}
-              className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
-            />
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+    <ChartContainer
+      config={chartConfig}
+      className="mx-auto aspect-square max-h-[400px] w-full pb-0"
+    >
+      <PieChart>
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent hideLabel />}
+        />
+        <Pie 
+          data={processedData} 
+          dataKey="amount" 
+          nameKey="configKey"
+          stroke="hsl(var(--background))"
+          strokeWidth={2}
+        />
+        <ChartLegend
+          content={<ChartLegendContent nameKey="configKey" />}
+          className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
+        />
+      </PieChart>
+    </ChartContainer>
   )
 }
 

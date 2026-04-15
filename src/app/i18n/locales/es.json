@@ -152,5 +152,73 @@
     "name": "Nombre",
     "color": "Color",
     "icon": "Icono"
+  },
+  "marketing": {
+    "logIn": "Iniciar Sesión",
+    "getStarted": "Empezar Gratis",
+    "features": "Funcionalidades",
+    "pricing": "Planes",
+    "about": "Nosotros",
+    "viewDemo": "Ver Demo",
+    "heroBadge": "Próximamente: Integración con IA",
+    "heroTitle1": "Tus finanzas en",
+    "heroTitle2": "Piloto Automático",
+    "heroSubtitle": "La plataforma de gestión financiera definitiva. Inteligente, rápida y diseñada para el futuro de tu dinero.",
+    "ctaTitle": "¿Listo para tomar el control?",
+    "ctaSubtitleStart": "Únete a más de ",
+    "ctaSubtitleEnd": " personas que ya están ahorrando tiempo y dinero con Altus.",
+    "createAccount": "Crear mi cuenta gratis",
+    "pricingTitle": "Planes que crecen contigo",
+    "pricingSubtitle": "Elige el plan perfecto para tomar el control total de tu futuro financiero.",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "save20": "Ahorra 20%",
+    "mostPopular": "Más Popular",
+    "plans": {
+      "free": {
+        "name": "Básico",
+        "price": "0",
+        "description": "Para empezar a organizar tus gastos diarios.",
+        "features": [
+          "Hasta 2 cuentas bancarias",
+          "Seguimiento de gastos ilimitado",
+          "Reportes mensuales básicos",
+          "Soporte por comunidad"
+        ]
+      },
+      "pro": {
+        "name": "Pro Global",
+        "price": "4.99",
+        "description": "Potencia tus finanzas con herramientas avanzadas e IA.",
+        "features": [
+          "Cuentas bancarias ilimitadas",
+          "Asistente IA Financiero",
+          "Reportes detallados y exportación",
+          "Presupuestos inteligentes",
+          "Soporte prioritario"
+        ]
+      },
+      "local": {
+        "name": "Pro Local (VE)",
+        "price": "2.50",
+        "description": "Precio ajustado para Venezuela. Misma potencia Pro.",
+        "features": [
+          "Todas las funciones Pro",
+          "Pago vía Pago Móvil / Binance",
+          "Soporte en bolívares",
+          "Ideal para la economía local"
+        ]
+      }
+    }
+  },
+  "auth": {
+    "registerTitle": "Crea tu cuenta en Altus",
+    "registerSubtitle": "Empieza a gestionar tu futuro financiero hoy mismo.",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "fullName": "Nombre completo",
+    "signUp": "Registrarse",
+    "haveAccount": "¿Ya tienes cuenta?",
+    "signIn": "Entrar"
   }
 }

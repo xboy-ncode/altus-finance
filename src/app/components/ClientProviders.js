@@ -29,9 +29,7 @@ export default function ClientProviders({ children }) {
       <SettingsProvider>
         <I18nextProvider i18n={i18n}>
           <LanguageUpdater>
-            <Layout>
-              {children}
-            </Layout>
+            {children}
           </LanguageUpdater>
         </I18nextProvider>
       </SettingsProvider>

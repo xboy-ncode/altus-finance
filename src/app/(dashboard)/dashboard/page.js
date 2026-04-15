@@ -21,15 +21,15 @@ import {
     TooltipProvider, 
     TooltipTrigger 
 } from "@/app/components/ui/tooltip";
-import PageLoader from './components/ui/page-loader';
+import PageLoader from '@/app/components/ui/page-loader';
 
-import OverviewCards from './components/dashboard/OverviewCards';
-import RecentTransactions from './components/dashboard/RecentTransactions';
-import ExpenseByCategoryChart from './components/dashboard/ExpenseByCategoryChart';
-import MonthlyBalanceChart from './components/dashboard/MonthlyBalanceChart';
-import UpcomingBills from './components/dashboard/UpcomingBills';
-import { mockDashboardData } from './components/utils/mockData';
-import { useSettings } from './components/contexts/SettingsContext';
+import OverviewCards from '@/app/components/dashboard/OverviewCards';
+import RecentTransactions from '@/app/components/dashboard/RecentTransactions';
+import ExpenseByCategoryChart from '@/app/components/dashboard/ExpenseByCategoryChart';
+import MonthlyBalanceChart from '@/app/components/dashboard/MonthlyBalanceChart';
+import UpcomingBills from '@/app/components/dashboard/UpcomingBills';
+import { mockDashboardData } from '@/app/components/utils/mockData';
+import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
 
 export default function DashboardPage() {
@@ -107,23 +107,23 @@ export default function DashboardPage() {
                 <OverviewCards data={dashboardData?.overview} />
 
                 <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-                    <Card className="xl:col-span-3 shadow-sm hover:shadow-md transition-shadow">
+                    <Card className="xl:col-span-3 shadow-sm hover:shadow-md transition-shadow min-w-0">
                         <CardHeader><CardTitle>{t('dashboard.monthlyBalanceTitle')}</CardTitle></CardHeader>
                         <CardContent className="h-96"><MonthlyBalanceChart data={dashboardData?.monthlyBalance} /></CardContent>
                     </Card>
                     
-                    <Card className="xl:col-span-2 shadow-sm hover:shadow-md transition-shadow">
+                    <Card className="xl:col-span-2 shadow-sm hover:shadow-md transition-shadow min-w-0">
                         <CardHeader><CardTitle>{t('dashboard.expenseByCategoryTitle')}</CardTitle></CardHeader>
                         <CardContent className="h-96"><ExpenseByCategoryChart data={dashboardData?.expensesByCategory} /></CardContent>
                     </Card>
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-                    <Card className="xl:col-span-3 shadow-sm">
+                    <Card className="xl:col-span-3 shadow-sm min-w-0">
                         <CardHeader><CardTitle>{t('dashboard.recentTransactionsTitle')}</CardTitle></CardHeader>
                         <CardContent className="h-96 overflow-y-auto"><RecentTransactions transactions={dashboardData?.recentTransactions} /></CardContent>
                     </Card>
-                    <Card className="xl:col-span-2 shadow-sm">
+                    <Card className="xl:col-span-2 shadow-sm min-w-0">
                         <CardHeader><CardTitle>{t('dashboard.upcomingBillsTitle')}</CardTitle></CardHeader>
                         <CardContent className="h-96 overflow-y-auto"><UpcomingBills bills={dashboardData?.upcomingBills} /></CardContent>
                     </Card>

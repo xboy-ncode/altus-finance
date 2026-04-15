@@ -152,5 +152,73 @@
     "name": "Name",
     "color": "Color",
     "icon": "Icon"
+  },
+  "marketing": {
+    "logIn": "Log In",
+    "getStarted": "Get Started",
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "viewDemo": "View Demo",
+    "heroBadge": "Coming Soon: IA 2.0 Integration",
+    "heroTitle1": "Your finances on",
+    "heroTitle2": "Autopilot",
+    "heroSubtitle": "The ultimate financial management platform. Smart, fast, and designed for the future of your money.",
+    "ctaTitle": "Ready to take control?",
+    "ctaSubtitleStart": "Join over ",
+    "ctaSubtitleEnd": " people already saving time and money with Altus.",
+    "createAccount": "Create my free account",
+    "pricingTitle": "Plans that grow with you",
+    "pricingSubtitle": "Choose the perfect plan to take full control of your financial future.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save20": "Save 20%",
+    "mostPopular": "Most Popular",
+    "plans": {
+      "free": {
+        "name": "Basic",
+        "price": "0",
+        "description": "Start organizing your daily expenses.",
+        "features": [
+          "Up to 2 bank accounts",
+          "Unlimited expense tracking",
+          "Basic monthly reports",
+          "Community support"
+        ]
+      },
+      "pro": {
+        "name": "Pro Global",
+        "price": "4.99",
+        "description": "Empower your finances with advanced tools and AI.",
+        "features": [
+          "Unlimited bank accounts",
+          "Financial AI Assistant",
+          "Detailed reports & exports",
+          "Smart budgets",
+          "Priority support"
+        ]
+      },
+      "local": {
+        "name": "Pro Local (VE)",
+        "price": "2.50",
+        "description": "Price adjusted for Venezuela. Same Pro power.",
+        "features": [
+          "All Pro features",
+          "Pago Móvil / Binance payments",
+          "Support in local currency",
+          "Ideal for the local economy"
+        ]
+      }
+    }
+  },
+  "auth": {
+    "registerTitle": "Create your Altus account",
+    "registerSubtitle": "Start managing your financial future today.",
+    "email": "Email address",
+    "password": "Password",
+    "fullName": "Full name",
+    "signUp": "Sign Up",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign In"
   }
 }
