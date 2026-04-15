@@ -100,7 +100,7 @@ const UpcomingBills = ({ bills = [] }) => {
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     };
 
-    const getPaymentStatus = (dueDate, isPaid) => {
+    const getPaymentStatus = (dueDate: string, isPaid: boolean): { status: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
         if (isPaid) return { status: 'paid', variant: 'default' };
         const daysRemaining = getDaysRemaining(dueDate);
         if (daysRemaining < 0) return { status: 'overdue', variant: 'destructive' };
