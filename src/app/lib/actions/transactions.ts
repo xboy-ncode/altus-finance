@@ -12,7 +12,6 @@ export async function createTransaction(formData: {
   accountId: string
   categoryId?: string
   merchant?: string
-  notes?: string
   isRecurring?: boolean
 }) {
   const supabase = await createClient()
@@ -34,7 +33,6 @@ export async function createTransaction(formData: {
       accountId: formData.accountId,
       categoryId: formData.categoryId,
       merchant: formData.merchant,
-      notes: formData.notes,
       isRecurring: formData.isRecurring ?? false,
     }).returning()
 
