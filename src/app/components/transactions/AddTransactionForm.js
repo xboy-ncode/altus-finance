@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     DollarSign,
     Plus,
@@ -12,7 +12,8 @@ import {
     Coffee,
     Lightbulb,
     LayoutGrid,
-    X
+    X,
+    Loader2
 } from 'lucide-react';
 import {
     Dialog,
@@ -25,71 +26,106 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { Badge } from '@/app/components/ui/badge';
 import { useTranslation } from 'react-i18next';
+import { createTransaction } from '@/app/lib/actions/transactions';
+import { getUserAccounts, getUserCategories } from '@/app/lib/actions/data-fetching';
+
+const iconMap = {
+    Coffee,
+    Car,
+    LayoutGrid,
+    Lightbulb,
+    ShoppingBag,
+    Pill,
+    BookOpen,
+    Home,
+    DollarSign
+};
 
 export default function AddTransactionForm({ onAddTransaction, onCancel }) {
     const { t } = useTranslation();
+    const [loading, setLoading] = useState(false);
+    const [dbAccounts, setDbAccounts] = useState([]);
+    const [dbCategories, setDbCategories] = useState([]);
+
     const [formData, setFormData] = useState({
         description: '',
         amount: '',
         date: new Date().toISOString().split('T')[0],
         type: 'Gasto',
-        category: 'Otros',
+        categoryId: '',
         merchant: '',
-        account: 'Efectivo',
-        notes: '',
-        tags: []
+        accountId: '',
+        notes: ''
     });
 
-    const [tagInput, setTagInput] = useState('');
+    useEffect(() => {
+        const loadInitialData = async () => {
+            const [accs, cats] = await Promise.all([
+                getUserAccounts(),
+                getUserCategories()
+            ]);
+            setDbAccounts(accs);
+            setDbCategories(cats);
 
-    const categories = [
-        { name: 'Alimentación', icon: Coffee },
-        { name: 'Transporte', icon: Car },
-        { name: 'Entretenimiento', icon: LayoutGrid },
-        { name: 'Servicios', icon: Lightbulb },
-        { name: 'Compras', icon: ShoppingBag },
-        { name: 'Salud', icon: Pill },
-        { name: 'Educación', icon: BookOpen },
-        { name: 'Vivienda', icon: Home },
-        { name: 'Otros', icon: LayoutGrid }
-    ];
+            // Set defaults if available
+            if (accs.length > 0) setFormData(prev => ({ ...prev, accountId: accs[0].id }));
+            if (cats.length > 0) {
+                const firstExpenseCat = cats.find(c => c.type === 'expense');
+                if (firstExpenseCat) setFormData(prev => ({ ...prev, categoryId: firstExpenseCat.id }));
+            }
+        };
+        loadInitialData();
+    }, []);
 
     const types = [
-        { name: 'Ingreso', icon: Plus, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500' },
-        { name: 'Gasto', icon: Minus, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500' },
-        { name: 'Transferencia', icon: ArrowLeftRight, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500' }
+        { id: 'income', name: 'Ingreso', icon: Plus, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500' },
+        { id: 'expense', name: 'Gasto', icon: Minus, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500' },
+        { id: 'transfer', name: 'Transferencia', icon: ArrowLeftRight, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500' }
     ];
 
-    const accounts = ['Efectivo', 'Tarjeta de Crédito', 'Tarjeta de Débito', 'Cuenta Bancaria', 'Otro'];
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         if (e) e.preventDefault();
-        
-        if (!formData.description || !formData.amount || !formData.date || !formData.type || !formData.category) {
+
+        if (!formData.description || !formData.amount || !formData.date || !formData.accountId) {
             alert(t('transactions.addFieldsRequired', 'Por favor complete todos los campos obligatorios'));
             return;
         }
 
-        const newTransaction = {
-            id: Date.now().toString(),
-            description: formData.description,
-            amount: parseFloat(formData.amount) * (formData.type === 'Gasto' ? -1 : 1),
-            date: formData.date,
-            type: formData.type,
-            category: formData.category,
-            merchant: formData.merchant || null,
-            account: formData.account,
-            notes: formData.notes || null,
-            tags: formData.tags.length > 0 ? formData.tags : null
-        };
+        setLoading(true);
+        try {
+            const amountNum = parseFloat(formData.amount);
+            const finalAmount = formData.type === 'Gasto' ? -Math.abs(amountNum) : Math.abs(amountNum);
 
-        onAddTransaction(newTransaction);
+            const result = await createTransaction({
+                description: formData.description,
+                amount: finalAmount,
+                date: formData.date,
+                accountId: formData.accountId,
+                categoryId: formData.categoryId || undefined,
+                merchant: formData.merchant || undefined,
+                notes: formData.notes || undefined,
+            });
+
+            if (result.success) {
+                onAddTransaction(result.data);
+            } else {
+                alert(result.error || 'Error al guardar la transacción');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error inesperado');
+        } finally {
+            setLoading(false);
+        }
     };
 
+    const currentTypeCategories = dbCategories.filter(c => 
+        formData.type === 'Ingreso' ? c.type === 'income' : c.type === 'expense'
+    );
+
     return (
-        <Dialog open={true} onOpenChange={(open) => { if (!open) onCancel(); }}>
+        <Dialog open={true} onOpenChange={(open) => { if (!open && !loading) onCancel(); }}>
             <DialogContent className="sm:max-w-[500px] overflow-y-auto max-h-[90vh]">
                 <DialogHeader>
                     <DialogTitle>{t('transactions.addTitle', 'Añadir Nueva Transacción')}</DialogTitle>
@@ -105,8 +141,9 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                                 const isSelected = formData.type === type.name;
                                 return (
                                     <button
-                                        key={type.name}
+                                        key={type.id}
                                         type="button"
+                                        disabled={loading}
                                         onClick={() => setFormData({ ...formData, type: type.name })}
                                         className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all gap-1.5 ${isSelected ? `${type.border} ${type.bg}` : 'border-transparent hover:bg-muted bg-muted/50'}`}
                                     >
@@ -122,6 +159,7 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                         <div className="space-y-2">
                             <Label>{t('transactions.description', 'Descripción')}*</Label>
                             <Input
+                                disabled={loading}
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 placeholder="Ej: Supermercado"
@@ -130,6 +168,7 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                         <div className="space-y-2">
                             <Label>{t('transactions.amount', 'Monto')}*</Label>
                             <Input
+                                disabled={loading}
                                 type="number"
                                 placeholder="0.00"
                                 value={formData.amount}
@@ -142,6 +181,7 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                         <div className="space-y-2">
                             <Label>{t('transactions.date', 'Fecha')}*</Label>
                             <Input
+                                disabled={loading}
                                 type="date"
                                 value={formData.date}
                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
@@ -149,10 +189,16 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                         </div>
                         <div className="space-y-2">
                             <Label>{t('transactions.account', 'Cuenta')}*</Label>
-                            <Select value={formData.account} onValueChange={v => setFormData({ ...formData, account: v })}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
+                            <Select 
+                                disabled={loading}
+                                value={formData.accountId} 
+                                onValueChange={v => setFormData({ ...formData, accountId: v })}
+                            >
+                                <SelectTrigger><SelectValue placeholder="Selecciona cuenta" /></SelectTrigger>
                                 <SelectContent>
-                                    {accounts.map(acc => <SelectItem key={acc} value={acc}>{acc}</SelectItem>)}
+                                    {dbAccounts.map(acc => (
+                                        <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -161,14 +207,15 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                     <div className="space-y-2">
                         <Label>{t('transactions.category', 'Categoría')}*</Label>
                         <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                            {categories.map(cat => {
-                                const Icon = cat.icon;
-                                const isSelected = formData.category === cat.name;
+                            {currentTypeCategories.map(cat => {
+                                const Icon = iconMap[cat.icon] || LayoutGrid;
+                                const isSelected = formData.categoryId === cat.id;
                                 return (
                                     <button
-                                        key={cat.name}
+                                        key={cat.id}
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, category: cat.name })}
+                                        disabled={loading}
+                                        onClick={() => setFormData({ ...formData, categoryId: cat.id })}
                                         className={`flex-shrink-0 flex items-center justify-center p-2.5 rounded-lg border-2 transition-all ${isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border/50 hover:bg-muted bg-card text-muted-foreground'}`}
                                         title={cat.name}
                                     >
@@ -185,6 +232,7 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                     <div className="space-y-2">
                         <Label>{t('transactions.merchant', 'Comercio')}</Label>
                         <Input
+                            disabled={loading}
                             value={formData.merchant}
                             onChange={e => setFormData({ ...formData, merchant: e.target.value })}
                             placeholder="Ej: Amazon"
@@ -194,6 +242,7 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                     <div className="space-y-2">
                         <Label>{t('transactions.notes', 'Notas')}</Label>
                         <Input
+                            disabled={loading}
                             value={formData.notes}
                             onChange={e => setFormData({ ...formData, notes: e.target.value })}
                             placeholder="Opcional..."
@@ -202,8 +251,13 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onCancel}>{t('common.cancel', 'Cancelar')}</Button>
-                    <Button onClick={handleSubmit}>{t('common.save', 'Guardar')}</Button>
+                    <Button variant="outline" disabled={loading} onClick={onCancel}>
+                        {t('common.cancel', 'Cancelar')}
+                    </Button>
+                    <Button onClick={handleSubmit} disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t('common.save', 'Guardar')}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

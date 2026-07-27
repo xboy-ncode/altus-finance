@@ -75,12 +75,12 @@ const data = {
   navSecondary: [
     {
       title: "Support",
-      url: "#",
+      url: "/support",
       icon: LifeBuoy,
     },
     {
       title: "Feedback",
-      url: "#",
+      url: "/feedback",
       icon: Send,
     },
   ],
@@ -125,6 +125,10 @@ export function AppSidebar({ ...props }) {
     features: data.features.map(item => ({
       ...item,
       name: t(`nav.${item.url.split('/')[1]}`)
+    })),
+    navSecondary: data.navSecondary.map(item => ({
+      ...item,
+      title: t(`nav.${item.url.split('/')[1]}`)
     }))
   };
 

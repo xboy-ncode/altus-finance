@@ -32,7 +32,9 @@
     "travel": "Travel Planner",
     "assistant": "AI Assistant",
     "navMain": "Main",
-    "features": "Features"
+    "features": "Features",
+    "support": "Support",
+    "feedback": "Feedback"
   },
   "dashboard": {
     "title": "Financial Dashboard",
@@ -220,5 +222,71 @@
     "signUp": "Sign Up",
     "haveAccount": "Already have an account?",
     "signIn": "Sign In"
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "How can we help you today?",
+    "searchTitle": "Search for answers",
+    "searchPlaceholder": "e.g. How to create a budget",
+    "categories": {
+      "gettingStarted": "Getting Started",
+      "gettingStartedDesc": "Learn the basics of Altus Finance.",
+      "security": "Account & Security",
+      "securityDesc": "Manage your profile and security settings.",
+      "features": "Features & Tools",
+      "featuresDesc": "Detailed guides for all our financial tools."
+    },
+    "viewArticles": "View articles",
+    "faqTitle": "Frequently Asked Questions",
+    "faqs": [
+      {
+        "q": "How do I connect my bank account?",
+        "a": "Go to the Accounts section and click on \"Add Account\". Follow the instructions to sync your bank securely."
+      },
+      {
+        "q": "Is my data secure?",
+        "a": "Yes, we use bank-level encryption (AES-256) to ensure your financial information is always protected."
+      },
+      {
+        "q": "Can I export my reports?",
+        "a": "Absolutely. You can export your data in CSV, PDF, and Excel formats from the Reports module."
+      }
+    ],
+    "contactUs": "Contact Us",
+    "liveChat": "Live Chat",
+    "liveChatDesc": "Available Mon-Fri, 9am-6pm. Average response time: 5 mins.",
+    "startChat": "Start Chat",
+    "emailSupport": "Email Support",
+    "sendEmail": "Send Email",
+    "docs": "Documentation",
+    "docsDesc": "Full API and feature guide.",
+    "visitDocs": "Visit Docs"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "We value your opinion and experience.",
+    "thanksTitle": "Thank you!",
+    "thanksMessage": "Your feedback has been submitted successfully. We appreciate your help in making Altus Finance better.",
+    "sendMore": "Send more feedback",
+    "helpEvolveTitle": "Help us evolve",
+    "helpEvolveDesc": "Altus Finance is built for you. Your ideas and suggestions directly influence our roadmap.",
+    "benefit1": "Influence new features",
+    "benefit2": "Help us fix bugs faster",
+    "benefit3": "Join our beta testers",
+    "supportNotice": "Are you experiencing a technical issue? Consider visiting our Support page first.",
+    "submitTitle": "Submit Feedback",
+    "submitSubtitle": "Tell us what's on your mind.",
+    "typeLabel": "What kind of feedback is this?",
+    "types": {
+      "feature": "Feature Request",
+      "bug": "Report a Bug",
+      "general": "General Feedback"
+    },
+    "ratingLabel": "How would you rate your overall experience?",
+    "subject": "Subject",
+    "subjectPlaceholder": "A brief summary...",
+    "message": "Your Message",
+    "messagePlaceholder": "Please describe your feedback in detail...",
+    "sendButton": "Send Feedback"
   }
 }

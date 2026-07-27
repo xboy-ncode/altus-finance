@@ -32,7 +32,9 @@
     "travel": "Planificador de Viajes",
     "assistant": "Asistente IA",
     "navMain": "Principal",
-    "features": "Características"
+    "features": "Características",
+    "support": "Soporte",
+    "feedback": "Sugerencias"
   },
   "dashboard": {
     "title": "Dashboard Financiero",
@@ -220,5 +222,71 @@
     "signUp": "Registrarse",
     "haveAccount": "¿Ya tienes cuenta?",
     "signIn": "Entrar"
+  },
+  "support": {
+    "title": "Soporte",
+    "subtitle": "¿Cómo podemos ayudarte hoy?",
+    "searchTitle": "Busca respuestas",
+    "searchPlaceholder": "ej. Cómo crear un presupuesto",
+    "categories": {
+      "gettingStarted": "Empezando",
+      "gettingStartedDesc": "Aprende los conceptos básicos de Altus Finance.",
+      "security": "Cuenta y Seguridad",
+      "securityDesc": "Gestiona tu perfil y ajustes de seguridad.",
+      "features": "Funciones y Herramientas",
+      "featuresDesc": "Guías detalladas de todas nuestras herramientas financieras."
+    },
+    "viewArticles": "Ver artículos",
+    "faqTitle": "Preguntas Frecuentes",
+    "faqs": [
+      {
+        "q": "¿Cómo conecto mi cuenta bancaria?",
+        "a": "Ve a la sección de Cuentas y haz clic en \"Añadir Cuenta\". Sigue las instrucciones para sincronizar tu banco de forma segura."
+      },
+      {
+        "q": "¿Mis datos están seguros?",
+        "a": "Sí, utilizamos cifrado de nivel bancario (AES-256) para asegurar que tu información financiera esté siempre protegida."
+      },
+      {
+        "q": "¿Puedo exportar mis reportes?",
+        "a": "Absolutamente. Puedes exportar tus datos en formatos CSV, PDF y Excel desde el módulo de Reportes."
+      }
+    ],
+    "contactUs": "Contáctanos",
+    "liveChat": "Chat en Vivo",
+    "liveChatDesc": "Disponible Lun-Vie, 9am-6pm. Tiempo de respuesta: 5 mins.",
+    "startChat": "Iniciar Chat",
+    "emailSupport": "Soporte por Email",
+    "sendEmail": "Enviar Email",
+    "docs": "Documentación",
+    "docsDesc": "Guía completa de funciones y API.",
+    "visitDocs": "Ver Documentación"
+  },
+  "feedback": {
+    "title": "Sugerencias",
+    "subtitle": "Valoramos tu opinión y experiencia.",
+    "thanksTitle": "¡Gracias!",
+    "thanksMessage": "Tu comentario ha sido enviado con éxito. Apreciamos tu ayuda para mejorar Altus Finance.",
+    "sendMore": "Enviar más comentarios",
+    "helpEvolveTitle": "Ayúdanos a evolucionar",
+    "helpEvolveDesc": "Altus Finance está hecho para ti. Tus ideas y sugerencias influyen directamente en nuestro futuro.",
+    "benefit1": "Influye en nuevas funciones",
+    "benefit2": "Ayúdanos a corregir errores más rápido",
+    "benefit3": "Únete a nuestros beta testers",
+    "supportNotice": "¿Tienes un problema técnico? Considera visitar nuestra página de Soporte primero.",
+    "submitTitle": "Enviar Sugerencias",
+    "submitSubtitle": "Cuéntanos qué tienes en mente.",
+    "typeLabel": "¿Qué tipo de comentario es este?",
+    "types": {
+      "feature": "Solicitud de Función",
+      "bug": "Reportar un Error",
+      "general": "Comentario General"
+    },
+    "ratingLabel": "¿Cómo calificarías tu experiencia general?",
+    "subject": "Asunto",
+    "subjectPlaceholder": "Un breve resumen...",
+    "message": "Tu Mensaje",
+    "messagePlaceholder": "Describe tu sugerencia en detalle...",
+    "sendButton": "Enviar Comentario"
   }
 }
