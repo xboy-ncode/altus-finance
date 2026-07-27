@@ -83,3 +83,95 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   account: one(accounts, { fields: [transactions.accountId], references: [accounts.id] }),
   category: one(categories, { fields: [transactions.categoryId], references: [categories.id] }),
 }))
+
+// --- SHARED PLANNER (PoolGoals) ---
+
+export const sharedGoalStatusEnum = pgEnum('shared_goal_status', ['active', 'completed', 'archived', 'cancelled'])
+export const sharedGoalTypeEnum = pgEnum('shared_goal_type', ['travel', 'property', 'product', 'event', 'custom'])
+export const memberRoleEnum = pgEnum('member_role', ['owner', 'collaborator', 'viewer'])
+export const memberStatusEnum = pgEnum('member_status', ['pending', 'active', 'removed'])
+
+export const sharedGoals = pgTable('shared_goals', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  creatorId: uuid('creator_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  type: sharedGoalTypeEnum('type').default('custom').notNull(),
+  status: sharedGoalStatusEnum('status').default('active').notNull(),
+  targetAmount: decimal('target_amount', { precision: 14, scale: 2 }).notNull(),
+  currency: text('currency').default('USD').notNull(),
+  targetDate: timestamp('target_date'),
+  coverImageUrl: text('cover_image_url'),
+  inviteCode: text('invite_code').unique().notNull(), // Código único para unirse
+  isPublic: boolean('is_public').default(false).notNull(), 
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const sharedGoalMembers = pgTable('shared_goal_members', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  goalId: uuid('goal_id').references(() => sharedGoals.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  role: memberRoleEnum('role').default('collaborator').notNull(),
+  status: memberStatusEnum('status').default('pending').notNull(), // Owner acepta
+  joinedAt: timestamp('joined_at'),
+  invitedAt: timestamp('invited_at').defaultNow().notNull(),
+})
+
+export const sharedGoalContributions = pgTable('shared_goal_contributions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  goalId: uuid('goal_id').references(() => sharedGoals.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  note: text('note'),
+  date: timestamp('date').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const sharedGoalNotes = pgTable('shared_goal_notes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  goalId: uuid('goal_id').references(() => sharedGoals.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  content: text('content').notNull(),
+  isPinned: boolean('is_pinned').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const sharedGoalMedia = pgTable('shared_goal_media', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  goalId: uuid('goal_id').references(() => sharedGoals.id, { onDelete: 'cascade' }).notNull(),
+  uploadedBy: uuid('uploaded_by').references(() => profiles.id, { onDelete: 'set null' }),
+  storageUrl: text('storage_url').notNull(),
+  caption: text('caption'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+// Shared Planner Relations
+export const sharedGoalsRelations = relations(sharedGoals, ({ one, many }) => ({
+  creator: one(profiles, { fields: [sharedGoals.creatorId], references: [profiles.id] }),
+  members: many(sharedGoalMembers),
+  contributions: many(sharedGoalContributions),
+  notes: many(sharedGoalNotes),
+  media: many(sharedGoalMedia),
+}))
+
+export const sharedGoalMembersRelations = relations(sharedGoalMembers, ({ one }) => ({
+  goal: one(sharedGoals, { fields: [sharedGoalMembers.goalId], references: [sharedGoals.id] }),
+  user: one(profiles, { fields: [sharedGoalMembers.userId], references: [profiles.id] }),
+}))
+
+export const sharedGoalContributionsRelations = relations(sharedGoalContributions, ({ one }) => ({
+  goal: one(sharedGoals, { fields: [sharedGoalContributions.goalId], references: [sharedGoals.id] }),
+  user: one(profiles, { fields: [sharedGoalContributions.userId], references: [profiles.id] }),
+}))
+
+export const sharedGoalNotesRelations = relations(sharedGoalNotes, ({ one }) => ({
+  goal: one(sharedGoals, { fields: [sharedGoalNotes.goalId], references: [sharedGoals.id] }),
+  user: one(profiles, { fields: [sharedGoalNotes.userId], references: [profiles.id] }),
+}))
+
+export const sharedGoalMediaRelations = relations(sharedGoalMedia, ({ one }) => ({
+  goal: one(sharedGoals, { fields: [sharedGoalMedia.goalId], references: [sharedGoals.id] }),
+  uploader: one(profiles, { fields: [sharedGoalMedia.uploadedBy], references: [profiles.id] }),
+}))
