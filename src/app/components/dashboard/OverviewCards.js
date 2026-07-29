@@ -108,9 +108,10 @@ const OverviewCards = ({ data }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: index * 0.1 }}
+                        className="h-full"
                     >
-                        <Card className={`border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-br ${card.gradient} group`}>
-                            <CardContent className="p-5">
+                        <Card className={`h-full border-0 shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-br ${card.gradient} group`}>
+                            <CardContent className="p-5 flex flex-col justify-center h-full">
                                 <div className="flex items-start justify-between">
                                     <div className="space-y-2 flex-1">
                                         <p className="text-sm font-medium text-muted-foreground">
