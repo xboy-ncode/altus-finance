@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/ta
 import { CopyIcon, Users, Settings, Plus, Check } from 'lucide-react'
 import { acceptMember } from '@/lib/actions/shared-planner'
 import { AcceptMemberButton } from './AcceptMemberButton'
+import { ContributeModal } from './ContributeModal'
 
 export default async function SharedGoalDetailsPage({ params }) {
   const supabase = await createClient()
@@ -231,7 +232,7 @@ export default async function SharedGoalDetailsPage({ params }) {
               <CardDescription className="text-primary-foreground/80">Suma dinero al pozo colectivo.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="secondary" className="w-full py-6 text-lg shadow-xl" size="lg">Hacer un Aporte</Button>
+              <ContributeModal goalId={goal.id} currency={goal.currency} />
             </CardContent>
           </Card>
           

@@ -54,10 +54,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 const ACCOUNT_TYPES = {
-    corriente: { label: 'Corriente', icon: Landmark, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500/10', badge: 'secondary' },
-    ahorros: { label: 'Ahorros', icon: PiggyBank, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', badge: 'default' },
-    efectivo: { label: 'Efectivo', icon: Banknote, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-500/10', badge: 'secondary' },
-    credito: { label: 'Crédito', icon: CreditCard, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10', badge: 'outline' },
+    bank: { label: 'Corriente', icon: Landmark, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500/10', badge: 'secondary' },
+    savings: { label: 'Ahorros', icon: PiggyBank, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', badge: 'default' },
+    cash: { label: 'Efectivo', icon: Banknote, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-500/10', badge: 'secondary' },
+    credit: { label: 'Crédito', icon: CreditCard, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10', badge: 'outline' },
 };
 
 export default function AccountsPage() {
@@ -65,6 +65,23 @@ export default function AccountsPage() {
     const { t } = useTranslation();
     const [accounts, setAccounts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    
+    // Form state
+    const [formData, setFormData] = useState({ name: '', type: 'bank', balance: '' });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const fetchAccounts = async () => {
+        try {
+            const res = await fetch('/api/accounts');
+            if (!res.ok) throw new Error('Failed to fetch accounts');
+            const data = await res.json();
+            setAccounts(data);
+        } catch (error) {
+            console.error('Error cargando cuentas:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     React.useEffect(() => {
         const fetchAccounts = async () => {
@@ -86,13 +103,59 @@ export default function AccountsPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [editingAccount, setEditingAccount] = useState(null);
 
-    const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
+    const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
 
-    const handleDelete = () => {
+    const handleOpenDialog = (acc = null) => {
+        setEditingAccount(acc);
+        if (acc) {
+            setFormData({ name: acc.name, type: acc.type, balance: acc.balance });
+        } else {
+            setFormData({ name: '', type: 'bank', balance: '' });
+        }
+        setIsDialogOpen(true);
+    };
+
+    const handleSave = async () => {
+        if (!formData.name) return;
+        setIsSaving(true);
+        try {
+            const method = editingAccount ? 'PUT' : 'POST';
+            const body = { ...formData, id: editingAccount?.id };
+            
+            const res = await fetch('/api/accounts', {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            if (res.ok) {
+                await fetchAccounts();
+                setIsDialogOpen(false);
+            } else {
+                console.error("Failed to save account");
+            }
+        } catch (error) {
+            console.error("Error saving account:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
         if(editingAccount) {
-            setAccounts(prev => prev.filter(a => a.id !== editingAccount.id));
-            setIsDeleteDialogOpen(false);
-            setEditingAccount(null);
+            setIsSaving(true);
+            try {
+                const res = await fetch(`/api/accounts?id=${editingAccount.id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await fetchAccounts();
+                    setIsDeleteDialogOpen(false);
+                    setEditingAccount(null);
+                }
+            } catch (error) {
+                console.error("Error deleting account:", error);
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -109,7 +172,7 @@ export default function AccountsPage() {
                             <p className="text-sm text-muted-foreground">{accounts.length} {t('accounts.registered')}</p>
                         </div>
                     </div>
-                    <Button onClick={() => { setEditingAccount(null); setIsDialogOpen(true); }}>
+                    <Button onClick={() => handleOpenDialog()}>
                         <Plus className="h-4 w-4 mr-2" />
                         {t('accounts.newAccount')}
                     </Button>
@@ -139,7 +202,7 @@ export default function AccountsPage() {
                         <p className="text-muted-foreground max-w-sm mx-auto mb-6">
                             {t('accounts.addFirstAccount')}
                         </p>
-                        <Button onClick={() => { setEditingAccount(null); setIsDialogOpen(true); }}>
+                        <Button onClick={() => handleOpenDialog()}>
                             <Plus className="h-4 w-4 mr-2" />
                             {t('accounts.addAccount')}
                         </Button>
@@ -147,7 +210,7 @@ export default function AccountsPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {accounts.map((acc) => {
-                            const typeConf = ACCOUNT_TYPES[acc.type] || ACCOUNT_TYPES.corriente;
+                            const typeConf = ACCOUNT_TYPES[acc.type] || ACCOUNT_TYPES.bank;
                             const Icon = typeConf.icon;
                             return (
                                 <Card key={acc.id} className="group relative overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border-0">
@@ -160,7 +223,7 @@ export default function AccountsPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => { setEditingAccount(acc); setIsDialogOpen(true); }}>
+                                                <DropdownMenuItem onClick={() => handleOpenDialog(acc)}>
                                                     <Edit className="h-4 w-4 mr-2" /> {t('common.edit')}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => {
@@ -199,11 +262,19 @@ export default function AccountsPage() {
                         <div className="space-y-4 py-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">{t('accounts.accountName')}</Label>
-                                <Input id="name" placeholder={t('accounts.accountName')} defaultValue={editingAccount?.name} />
+                                <Input 
+                                    id="name" 
+                                    placeholder={t('accounts.accountName')} 
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label>{t('accounts.accountType')}</Label>
-                                <Select defaultValue={editingAccount?.type || 'corriente'}>
+                                <Select 
+                                    value={formData.type} 
+                                    onValueChange={(val) => setFormData({ ...formData, type: val })}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder={t('accounts.accountType')} />
                                     </SelectTrigger>
@@ -224,12 +295,21 @@ export default function AccountsPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="balance">{t('accounts.initialBalance')}</Label>
-                                <Input id="balance" type="number" step="0.01" placeholder="0.00" defaultValue={editingAccount?.balance} />
+                                <Input 
+                                    id="balance" 
+                                    type="number" 
+                                    step="0.01" 
+                                    placeholder="0.00" 
+                                    value={formData.balance}
+                                    onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                                />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t('common.cancel')}</Button>
-                            <Button onClick={() => setIsDialogOpen(false)}>{t('common.save')}</Button>
+                            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>{t('common.cancel')}</Button>
+                            <Button onClick={handleSave} disabled={isSaving || !formData.name}>
+                                {isSaving ? t('common.loading') : t('common.save')}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
@@ -246,8 +326,10 @@ export default function AccountsPage() {
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter className="mt-4">
-                            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
-                            <Button variant="destructive" onClick={handleDelete}>{t('common.delete')}</Button>
+                            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSaving}>{t('common.cancel')}</Button>
+                            <Button variant="destructive" onClick={handleDelete} disabled={isSaving}>
+                                {isSaving ? t('common.loading') : t('common.delete')}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

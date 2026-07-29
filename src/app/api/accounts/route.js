@@ -35,3 +35,73 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 })
   }
 }
+
+export async function POST(request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  try {
+    const body = await request.json()
+    const { name, type, balance } = body
+
+    const [newAccount] = await db.insert(accounts).values({
+      userId: user.id,
+      name,
+      type,
+      balance: balance?.toString() || '0',
+    }).returning()
+
+    return NextResponse.json(newAccount)
+  } catch (error) {
+    console.error('Error creating account:', error)
+    return NextResponse.json({ error: 'Failed to create account' }, { status: 500 })
+  }
+}
+
+export async function PUT(request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  try {
+    const body = await request.json()
+    const { id, name, type, balance } = body
+    
+    if (!id) return NextResponse.json({ error: 'Missing account ID' }, { status: 400 })
+
+    const [updatedAccount] = await db.update(accounts)
+      .set({ name, type, balance: balance?.toString(), updatedAt: new Date() })
+      .where(eq(accounts.id, id))
+      .returning()
+
+    return NextResponse.json(updatedAccount)
+  } catch (error) {
+    console.error('Error updating account:', error)
+    return NextResponse.json({ error: 'Failed to update account' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) return NextResponse.json({ error: 'Missing account ID' }, { status: 400 })
+
+    await db.delete(accounts).where(eq(accounts.id, id))
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting account:', error)
+    return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
+  }
+}
+

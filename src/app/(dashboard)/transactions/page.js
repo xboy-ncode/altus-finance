@@ -68,19 +68,20 @@ export default function TransactionsPage() {
     const { formatCurrency, formatDate } = useSettings();
     const { t } = useTranslation();
 
+    const fetchTransactions = async () => {
+        try {
+            const res = await fetch('/api/transactions');
+            if (!res.ok) throw new Error('Failed to fetch transactions');
+            const data = await res.json();
+            setTransactions(data);
+        } catch (error) {
+            console.error('Error cargando transacciones:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTransactions = async () => {
-            try {
-                const res = await fetch('/api/transactions');
-                if (!res.ok) throw new Error('Failed to fetch transactions');
-                const data = await res.json();
-                setTransactions(data);
-            } catch (error) {
-                console.error('Error cargando transacciones:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchTransactions();
     }, []);
 
@@ -102,14 +103,30 @@ export default function TransactionsPage() {
     const totalPages = Math.ceil(filteredTransactions.length / PAGE_SIZE);
     const paginatedTx = filteredTransactions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-    const handleDelete = () => {
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
         if (!deleteTarget) return;
-        setTransactions(prev => prev.filter(t => t.id !== deleteTarget.id));
-        setDeleteTarget(null);
+        setIsDeleting(true);
+        try {
+            const { deleteTransaction } = await import('@/app/lib/actions/transactions');
+            const res = await deleteTransaction(deleteTarget.id, deleteTarget.accountId, deleteTarget.amount);
+            if (res.success) {
+                await fetchTransactions(); // Refrescar lista completa para sincronizar
+                setDeleteTarget(null);
+            } else {
+                alert(res.error || 'Error eliminando transacción');
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
-    const handleAddTransaction = (newTx) => {
-        setTransactions(prev => [newTx, ...prev]);
+    const handleAddTransaction = async (newTx) => {
+        // En vez de inyectarlo, recargamos para obtener los joins correctos (categoryName, etc)
+        await fetchTransactions();
         setShowAddForm(false);
     };
 
@@ -340,8 +357,10 @@ export default function TransactionsPage() {
                         <p className="text-sm">¿Estás seguro de eliminar <strong>{deleteTarget?.description}</strong>?</p>
                         <p className="text-xs text-muted-foreground">Esta acción no se puede deshacer.</p>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button>
-                            <Button variant="destructive" onClick={handleDelete}>{t('common.delete')}</Button>
+                            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>{t('common.cancel')}</Button>
+                            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                                {isDeleting ? t('common.loading') : t('common.delete')}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

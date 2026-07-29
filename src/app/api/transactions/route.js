@@ -22,6 +22,7 @@ export async function GET() {
       type: categories.type,
       categoryName: categories.name,
       accountName: accounts.name,
+      accountId: transactions.accountId,
     })
     .from(transactions)
     .leftJoin(categories, eq(transactions.categoryId, categories.id))
@@ -38,6 +39,7 @@ export async function GET() {
       type: tx.type === 'income' ? 'Ingreso' : tx.type === 'expense' ? 'Gasto' : 'Transferencia',
       category: tx.categoryName || 'General',
       account: tx.accountName || 'Cuenta',
+      accountId: tx.accountId,
     }))
 
     return NextResponse.json(formattedTxs)

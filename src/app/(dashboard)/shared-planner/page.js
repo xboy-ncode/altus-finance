@@ -23,7 +23,8 @@ export default async function SharedPlannerPage() {
       with: {
         goal: {
           with: {
-            members: true
+            members: true,
+            contributions: true
           }
         }
       }
@@ -62,8 +63,7 @@ export default async function SharedPlannerPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8">
           {myGoals.map((goal) => {
             const memberCount = goal.members?.length || 0;
-            // TODO: Sumar contribuciones reales, por ahora mock
-            const currentAmount = 0; 
+            const currentAmount = goal.contributions?.reduce((sum, c) => sum + Number(c.amount), 0) || 0;
             const progress = goal.targetAmount > 0 ? (currentAmount / goal.targetAmount) * 100 : 0;
             
             return (
