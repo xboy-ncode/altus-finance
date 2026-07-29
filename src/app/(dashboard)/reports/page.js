@@ -22,7 +22,6 @@ import {
     PieChart as PieChartIcon,
     Activity,
 } from 'lucide-react';
-import { mockTransactionsData } from '@/app/components/utils/mockData';
 import { useSettings } from '@/app/components/contexts/SettingsContext';
 import PageLoader from '@/app/components/ui/page-loader';
 import {
@@ -70,11 +69,19 @@ export default function ReportsPage() {
     ];
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setTransactions(mockTransactionsData);
-            setIsLoading(false);
-        }, 400);
-        return () => clearTimeout(timer);
+        const fetchTransactions = async () => {
+            try {
+                const res = await fetch('/api/transactions');
+                if (!res.ok) throw new Error('Failed to fetch transactions');
+                const data = await res.json();
+                setTransactions(data);
+            } catch (error) {
+                console.error('Error cargando transacciones:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTransactions();
     }, []);
 
     // Process data

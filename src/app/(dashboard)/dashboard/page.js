@@ -22,13 +22,11 @@ import {
     TooltipTrigger 
 } from "@/app/components/ui/tooltip";
 import PageLoader from '@/app/components/ui/page-loader';
-
 import OverviewCards from '@/app/components/dashboard/OverviewCards';
 import RecentTransactions from '@/app/components/dashboard/RecentTransactions';
 import ExpenseByCategoryChart from '@/app/components/dashboard/ExpenseByCategoryChart';
 import MonthlyBalanceChart from '@/app/components/dashboard/MonthlyBalanceChart';
 import UpcomingBills from '@/app/components/dashboard/UpcomingBills';
-import { mockDashboardData } from '@/app/components/utils/mockData';
 import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
 
@@ -46,11 +44,13 @@ export default function DashboardPage() {
             if (showRefreshIndicator) setIsRefreshing(true);
             else setIsLoading(true);
             
-            await new Promise(resolve => setTimeout(resolve, 400));
-            setDashboardData(mockDashboardData);
+            const res = await fetch(`/api/dashboard?period=${timePeriod}`)
+            if (!res.ok) throw new Error('Failed to fetch')
+            const data = await res.json()
+            setDashboardData(data);
             setLastUpdated(new Date().toLocaleTimeString());
         } catch (err) {
-            // Error handled silently for now
+            console.error('Error cargando dashboard:', err)
         } finally {
             setIsLoading(false);
             setIsRefreshing(false);

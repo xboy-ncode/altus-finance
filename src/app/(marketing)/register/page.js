@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
@@ -11,12 +11,28 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Rocket, Loader2 } from 'lucide-react';
 import { signInWithGoogle, signInWithEmail } from '@/app/lib/actions/auth-providers';
 
+
 export default function RegisterPage() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [email, setEmail] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
+
+
+  // Detectar si Supabase redirigió el magic link aquí con un ?code= en la URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code) return;
+
+    // El PKCE code verifier está en las cookies del servidor,
+    // así que redirigimos al API route server-side para que lo intercambie
+    setCodeLoading(true);
+    console.log('[REGISTER PAGE] code detectado, redirigiendo al server para intercambio');
+    window.location.href = `/api/auth/exchange?code=${code}`;
+  }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -37,6 +53,18 @@ export default function RegisterPage() {
       alert(result?.error || 'Error al enviar el código');
     }
   };
+
+  // Si estamos intercambiando el code, mostrar spinner
+  if (codeLoading) {
+    return (
+      <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Iniciando sesión...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (sent) {
     return (

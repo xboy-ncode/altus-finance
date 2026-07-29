@@ -63,12 +63,24 @@ const ACCOUNT_TYPES = {
 export default function AccountsPage() {
     const { formatCurrency } = useSettings();
     const { t } = useTranslation();
-    const [accounts, setAccounts] = useState([
-        { id: 1, name: 'Cuenta Corriente', balance: 1200, type: 'corriente' },
-        { id: 2, name: 'Ahorros', balance: 5000, type: 'ahorros' },
-        { id: 3, name: 'Tarjeta Visa', balance: -450, type: 'credito' },
-    ]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [accounts, setAccounts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchAccounts = async () => {
+            try {
+                const res = await fetch('/api/accounts');
+                if (!res.ok) throw new Error('Failed to fetch accounts');
+                const data = await res.json();
+                setAccounts(data);
+            } catch (error) {
+                console.error('Error cargando cuentas:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchAccounts();
+    }, []);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

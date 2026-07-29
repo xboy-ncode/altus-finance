@@ -6,6 +6,7 @@ import {
   Bot,
   ClipboardPenIcon,
   Command,
+  Crown,
   GemIcon,
   Home,
   LandmarkIcon,
@@ -15,6 +16,8 @@ import {
   Settings2,
   Moon,
   Sun,
+  Users2,
+  Zap,
 } from "lucide-react"
 
 import { useTheme } from "next-themes"
@@ -47,7 +50,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "/",
+      url: "/dashboard",
       icon: Home,
       isActive: true,
     },
@@ -96,6 +99,11 @@ const data = {
       icon: Map,
     },
     {
+      name: "Shared Planner",
+      url: "/shared-planner",
+      icon: Users2,
+    },
+    {
       name: "AI Assistant",
       url: "/assistant",
       icon: Bot,
@@ -103,7 +111,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }) {
+export function AppSidebar({ user: userProp, subscription, ...props }) {
   const { theme, setTheme } = useTheme()
   const { t } = useTranslation()
   
@@ -112,6 +120,19 @@ export function AppSidebar({ ...props }) {
   React.useEffect(() => setMounted(true), [])
 
   if (!mounted) return null
+
+  // Usar datos reales del usuario si los hay, si no, fallback
+  const sidebarUser = {
+    name: userProp?.fullName || userProp?.full_name || 'Usuario',
+    email: userProp?.email || '',
+    avatar: userProp?.avatarUrl || userProp?.avatar_url || '/icon-512.png',
+  }
+
+  const plan = subscription?.status === 'active' && subscription?.priceId === 'pro_beta'
+    ? { label: 'Pro Beta', icon: Zap }
+    : subscription?.status === 'active'
+    ? { label: 'Pro', icon: Crown }
+    : { label: 'Free', icon: GemIcon }
 
   const isDark = theme === "dark"
 
@@ -195,7 +216,7 @@ export function AppSidebar({ ...props }) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={sidebarUser} plan={plan} />
       </SidebarFooter>
     </Sidebar>
   );

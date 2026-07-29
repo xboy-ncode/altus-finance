@@ -6,7 +6,10 @@ import { headers } from 'next/headers'
 
 export async function signInWithGoogle() {
   const supabase = await createClient()
-  const origin = (await headers()).get('origin')
+  const headersList = await headers()
+  const host = headersList.get('host')
+  const protocol = host?.includes('localhost') ? 'http' : 'https'
+  const origin = `${protocol}://${host}`
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -31,8 +34,14 @@ export async function signInWithGoogle() {
 
 export async function signInWithEmail(email: string) {
   const supabase = await createClient()
-  const origin = (await headers()).get('origin')
-  
+  const headersList = await headers()
+  const host = headersList.get('host')
+  const protocol = host?.includes('localhost') ? 'http' : 'https'
+  const origin = `${protocol}://${host}`
+
+  console.log('[AUTH EMAIL] enviando OTP a:', email)
+  console.log('[AUTH EMAIL] emailRedirectTo:', `${origin}/auth/callback`)
+
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -40,6 +49,8 @@ export async function signInWithEmail(email: string) {
       emailRedirectTo: `${origin}/auth/callback`,
     },
   })
+
+  console.log('[AUTH EMAIL] error de Supabase OTP:', error)
 
   if (error) {
     return { success: false, error: error.message }

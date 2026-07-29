@@ -25,20 +25,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/app/components/ui/sheet';
-import {
-    ArrowUpDown,
-    Search,
-    Plus,
-    Pencil,
-    Trash2,
-    Eye,
-    TrendingUp,
-    TrendingDown,
-    ArrowLeftRight,
-    ChevronLeft,
-    ChevronRight,
-} from 'lucide-react';
-import { mockTransactionsData } from '@/app/components/utils/mockData';
+import { ArrowUpDown, Search, Plus, Pencil, Trash2, Eye, TrendingUp, TrendingDown, ArrowLeftRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSettings } from '@/app/components/contexts/SettingsContext';
 import PageLoader from '@/app/components/ui/page-loader';
 import AddTransactionForm from '@/app/components/transactions/AddTransactionForm';
@@ -82,11 +69,19 @@ export default function TransactionsPage() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setTransactions(mockTransactionsData);
-            setIsLoading(false);
-        }, 400);
-        return () => clearTimeout(timer);
+        const fetchTransactions = async () => {
+            try {
+                const res = await fetch('/api/transactions');
+                if (!res.ok) throw new Error('Failed to fetch transactions');
+                const data = await res.json();
+                setTransactions(data);
+            } catch (error) {
+                console.error('Error cargando transacciones:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTransactions();
     }, []);
 
     const filteredTransactions = useMemo(() => {
