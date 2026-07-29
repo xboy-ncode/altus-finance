@@ -26,10 +26,52 @@ export async function GET(request) {
     endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
   }
 
+  // --- Helper to fetch rates ---
+  let bcvRate = null;
+  let binanceRate = null;
+  try {
+    const bcvRes = await fetch('https://ve.dolarapi.com/v1/dolares/oficial', { cache: 'no-store' });
+    if (bcvRes.ok) bcvRate = (await bcvRes.json()).promedio;
+  } catch (e) {}
+  try {
+    const binanceRes = await fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fiat: 'VES', page: 1, rows: 10, tradeType: 'BUY', asset: 'USDT', countries: [], proMerchantAds: false, shieldMerchantAds: false, publisherType: null, payTypes: [] }),
+      cache: 'no-store'
+    });
+    if (binanceRes.ok) {
+      const ads = (await binanceRes.json()).data;
+      if (ads && ads.length > 0) {
+        const prices = ads.map(a => parseFloat(a.adv.price));
+        binanceRate = prices.reduce((a, b) => a + b, 0) / prices.length;
+      }
+    }
+  } catch(e) {}
+
   try {
     // 1. Total balance across all accounts
     const userAccounts = await db.select().from(accounts).where(eq(accounts.userId, user.id))
-    const totalBalance = userAccounts.reduce((sum, acc) => sum + parseFloat(acc.balance || 0), 0)
+    
+    let totalBalanceUSDT = 0;
+    let totalBs = 0;
+    let totalUSD = 0;
+
+    userAccounts.forEach(acc => {
+      const bal = parseFloat(acc.balance || 0);
+      if (acc.currency === 'VES') {
+        totalBs += bal;
+        totalBalanceUSDT += (binanceRate ? bal / binanceRate : 0);
+      } else {
+        totalUSD += bal;
+        totalBalanceUSDT += bal;
+      }
+    });
+
+    const totalBalanceBCV = totalUSD + (bcvRate ? totalBs / bcvRate : 0);
+    // Para simplificar, totalIncome y totalExpenses por ahora se suman crudos, 
+    // pero si hubiera transacciones en VES habría que convertirlas. 
+    // De momento, las cuentas son las que tienen el balance total.
 
     // 2. Transactions in period
     const periodTransactions = await db.select().from(transactions).where(
@@ -83,7 +125,11 @@ export async function GET(request) {
 
     return NextResponse.json({
       overview: {
-        totalBalance,
+        totalBalance: totalBalanceUSDT,
+        totalBalanceBCV,
+        totalBs,
+        totalUSD,
+        rates: { bcv: bcvRate, binance: binanceRate },
         totalIncome,
         totalExpenses,
         netSavings: totalIncome - totalExpenses,

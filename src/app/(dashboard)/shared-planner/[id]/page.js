@@ -19,7 +19,7 @@ export default async function SharedGoalDetailsPage({ params }) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { id } = params
+  const { id } = await params
   
   // Buscar meta y sus relaciones
   const goal = await db.query.sharedGoals.findFirst({

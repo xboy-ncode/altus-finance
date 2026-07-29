@@ -18,6 +18,7 @@ export async function GET() {
       name: accounts.name,
       type: accounts.type,
       balance: accounts.balance,
+      currency: accounts.currency,
       color: accounts.color,
     })
     .from(accounts)
@@ -44,12 +45,13 @@ export async function POST(request) {
 
   try {
     const body = await request.json()
-    const { name, type, balance } = body
+    const { name, type, balance, currency } = body
 
     const [newAccount] = await db.insert(accounts).values({
       userId: user.id,
       name,
       type,
+      currency: currency || 'USD',
       balance: balance?.toString() || '0',
     }).returning()
 
@@ -68,12 +70,12 @@ export async function PUT(request) {
 
   try {
     const body = await request.json()
-    const { id, name, type, balance } = body
+    const { id, name, type, balance, currency } = body
     
     if (!id) return NextResponse.json({ error: 'Missing account ID' }, { status: 400 })
 
     const [updatedAccount] = await db.update(accounts)
-      .set({ name, type, balance: balance?.toString(), updatedAt: new Date() })
+      .set({ name, type, currency, balance: balance?.toString(), updatedAt: new Date() })
       .where(eq(accounts.id, id))
       .returning()
 

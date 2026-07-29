@@ -65,10 +65,12 @@ export default function AccountsPage() {
     const { t } = useTranslation();
     const [accounts, setAccounts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [rates, setRates] = useState(null);
     
     // Form state
-    const [formData, setFormData] = useState({ name: '', type: 'bank', balance: '' });
+    const [formData, setFormData] = useState({ name: '', type: 'bank', balance: '', currency: 'USD' });
     const [isSaving, setIsSaving] = useState(false);
+    const [balanceView, setBalanceView] = useState(0);
 
     const fetchAccounts = async () => {
         try {
@@ -84,33 +86,54 @@ export default function AccountsPage() {
     };
 
     React.useEffect(() => {
-        const fetchAccounts = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/accounts');
-                if (!res.ok) throw new Error('Failed to fetch accounts');
-                const data = await res.json();
-                setAccounts(data);
+                const resAcc = await fetch('/api/accounts');
+                if (resAcc.ok) {
+                    const dataAcc = await resAcc.json();
+                    setAccounts(dataAcc);
+                }
+                const resRates = await fetch('/api/rates');
+                if (resRates.ok) {
+                    const dataRates = await resRates.json();
+                    setRates(dataRates);
+                }
             } catch (error) {
-                console.error('Error cargando cuentas:', error);
+                console.error('Error cargando datos:', error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchAccounts();
+        fetchData();
     }, []);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [editingAccount, setEditingAccount] = useState(null);
 
-    const totalBalance = accounts.reduce((s, a) => s + (a.balance || 0), 0);
+    let totalBalanceUSDT = 0;
+    let totalBs = 0;
+    let totalUSD = 0;
+
+    accounts.forEach(acc => {
+        const bal = parseFloat(acc.balance || 0);
+        if (acc.currency === 'VES') {
+            totalBs += bal;
+            totalBalanceUSDT += (rates?.binance ? bal / rates.binance : 0);
+        } else {
+            totalUSD += bal;
+            totalBalanceUSDT += bal;
+        }
+    });
+
+    const totalBalanceBCV = totalUSD + (rates?.bcv ? totalBs / rates.bcv : 0);
 
     const handleOpenDialog = (acc = null) => {
         setEditingAccount(acc);
         if (acc) {
-            setFormData({ name: acc.name, type: acc.type, balance: acc.balance });
+            setFormData({ name: acc.name, type: acc.type, balance: acc.balance, currency: acc.currency || 'USD' });
         } else {
-            setFormData({ name: '', type: 'bank', balance: '' });
+            setFormData({ name: '', type: 'bank', balance: '', currency: 'USD' });
         }
         setIsDialogOpen(true);
     };
@@ -181,14 +204,49 @@ export default function AccountsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                         <CardContent className="p-6">
-                            <p className="text-sm font-medium text-muted-foreground mb-1">{t('accounts.totalBalance')}</p>
-                            <h2 className="text-3xl font-bold tracking-tight">{formatCurrency(totalBalance)}</h2>
+                            <p className="text-sm font-medium text-muted-foreground mb-2">{t('accounts.totalBalance')}</p>
+                            <div className="relative h-10 flex flex-col justify-center">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={balanceView}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.15 }}
+                                    >
+                                        {balanceView === 0 && (
+                                            <h2 className="text-3xl font-bold tracking-tight flex items-baseline gap-1">
+                                                {formatCurrency(totalBalanceUSDT)} <span className="text-sm font-normal text-muted-foreground">USDT</span>
+                                            </h2>
+                                        )}
+                                        {balanceView === 1 && (
+                                            <h2 className="text-3xl font-bold tracking-tight flex items-baseline gap-1">
+                                                {formatCurrency(totalBalanceBCV)} <span className="text-sm font-normal text-muted-foreground">USD (BCV)</span>
+                                            </h2>
+                                        )}
+                                        {balanceView === 2 && (
+                                            <h2 className="text-3xl font-bold tracking-tight flex items-baseline gap-1">
+                                                Bs {parseFloat(totalBs).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-sm font-normal text-muted-foreground">VES</span>
+                                            </h2>
+                                        )}
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+                            <div className="flex gap-1 mt-4 w-1/3">
+                                {[0, 1, 2].map((i) => (
+                                    <div 
+                                        key={i} 
+                                        onClick={() => setBalanceView(i)}
+                                        className={`h-1.5 rounded-full flex-1 cursor-pointer transition-colors ${i === balanceView ? 'bg-primary' : 'bg-primary/20 hover:bg-primary/40'}`} 
+                                    />
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-6">
-                            <p className="text-sm font-medium text-muted-foreground mb-1">{t('accounts.average')}</p>
-                            <h2 className="text-3xl font-bold tracking-tight">{formatCurrency(totalBalance / (accounts.length || 1))}</h2>
+                            <p className="text-sm font-medium text-muted-foreground mb-1">{t('accounts.average')} (USDT)</p>
+                            <h2 className="text-3xl font-bold tracking-tight mt-2">{formatCurrency(totalBalanceUSDT / (accounts.length || 1))}</h2>
                         </CardContent>
                     </Card>
                 </div>
@@ -241,12 +299,37 @@ export default function AccountsPage() {
                                             </div>
                                             <div>
                                                 <h3 className="font-semibold text-base">{acc.name}</h3>
-                                                <Badge variant={typeConf.badge} className="text-[10px] mt-0.5">{typeConf.label}</Badge>
+                                                <div className="flex gap-2">
+                                                    <Badge variant={typeConf.badge} className="text-[10px] mt-0.5">{typeConf.label}</Badge>
+                                                    <Badge variant="outline" className="text-[10px] mt-0.5">{acc.currency || 'USD'}</Badge>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <p className="text-sm font-medium text-muted-foreground mb-1 mt-4">{t('accounts.currentBalance')}</p>
-                                        <h3 className={`text-2xl font-bold tracking-tight ${acc.balance < 0 ? 'text-destructive' : ''}`}>{formatCurrency(acc.balance)}</h3>
+                                        <h3 className={`text-2xl font-bold tracking-tight ${acc.balance < 0 ? 'text-destructive' : ''}`}>
+                                            {acc.currency === 'VES' ? `Bs ${parseFloat(acc.balance).toFixed(2)}` : formatCurrency(acc.balance)}
+                                        </h3>
+                                        
+                                        {acc.currency === 'VES' && rates && (
+                                            <div className="mt-4 pt-4 border-t border-border/50">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Equivalencias USD</p>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {rates.bcv && (
+                                                        <div className="bg-background border border-border/50 rounded-lg p-2 flex flex-col">
+                                                            <span className="text-[10px] text-muted-foreground mb-0.5">Tasa BCV</span>
+                                                            <span className="font-semibold text-sm">~{formatCurrency(acc.balance / rates.bcv)}</span>
+                                                        </div>
+                                                    )}
+                                                    {rates.binance && (
+                                                        <div className="bg-background border border-border/50 rounded-lg p-2 flex flex-col">
+                                                            <span className="text-[10px] text-muted-foreground mb-0.5">Binance USDT</span>
+                                                            <span className="font-semibold text-sm">~{formatCurrency(acc.balance / rates.binance)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             );
@@ -290,6 +373,21 @@ export default function AccountsPage() {
                                                 </SelectItem>
                                             );
                                         })}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Moneda</Label>
+                                <Select 
+                                    value={formData.currency} 
+                                    onValueChange={(val) => setFormData({ ...formData, currency: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Seleccionar moneda" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="USD">USD (Dólares)</SelectItem>
+                                        <SelectItem value="VES">VES (Bolívares)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

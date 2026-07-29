@@ -23,6 +23,7 @@ export const accounts = pgTable('accounts', {
   name: text('name').notNull(),
   type: accountTypeEnum('type').default('bank').notNull(),
   balance: decimal('balance', { precision: 12, scale: 2 }).default('0').notNull(),
+  currency: text('currency').default('USD').notNull(),
   color: text('color').default('#3b82f6').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
