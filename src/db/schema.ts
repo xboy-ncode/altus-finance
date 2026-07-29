@@ -147,6 +147,17 @@ export const sharedGoalMedia = pgTable('shared_goal_media', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
+export const travelExpenses = pgTable('travel_expenses', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  goalId: uuid('goal_id').references(() => sharedGoals.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  category: text('category').default('Other').notNull(), // Transport, Lodging, Food, Activities
+  color: text('color').default('#8884d8').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 // Shared Planner Relations
 export const sharedGoalsRelations = relations(sharedGoals, ({ one, many }) => ({
   creator: one(profiles, { fields: [sharedGoals.creatorId], references: [profiles.id] }),
@@ -154,6 +165,7 @@ export const sharedGoalsRelations = relations(sharedGoals, ({ one, many }) => ({
   contributions: many(sharedGoalContributions),
   notes: many(sharedGoalNotes),
   media: many(sharedGoalMedia),
+  travelExpenses: many(travelExpenses),
 }))
 
 export const sharedGoalMembersRelations = relations(sharedGoalMembers, ({ one }) => ({
@@ -174,4 +186,9 @@ export const sharedGoalNotesRelations = relations(sharedGoalNotes, ({ one }) => 
 export const sharedGoalMediaRelations = relations(sharedGoalMedia, ({ one }) => ({
   goal: one(sharedGoals, { fields: [sharedGoalMedia.goalId], references: [sharedGoals.id] }),
   uploader: one(profiles, { fields: [sharedGoalMedia.uploadedBy], references: [profiles.id] }),
+}))
+
+export const travelExpensesRelations = relations(travelExpenses, ({ one }) => ({
+  goal: one(sharedGoals, { fields: [travelExpenses.goalId], references: [sharedGoals.id] }),
+  user: one(profiles, { fields: [travelExpenses.userId], references: [profiles.id] }),
 }))

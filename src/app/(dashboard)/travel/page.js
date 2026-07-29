@@ -20,62 +20,59 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plane, Calendar, MapPin, Wallet, Briefcase, Plus, Check, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
-const TRIPS_MOCK = [
-    {
-        id: 1,
-        destination: 'Tokyo, Japón',
-        dateStr: '15 Oct - 30 Oct 2026',
-        status: 'upcoming',
-        budget: 6000,
-        spent: 1200,
-        expenses: [
-            { name: 'Vuelos', amount: 900, category: 'Transport', color: '#8884d8' },
-            { name: 'AirBnb Res.', amount: 300, category: 'Lodging', color: '#82ca9d' },
-        ]
-    },
-    {
-        id: 2,
-        destination: 'París, Francia',
-        dateStr: '10 Feb - 20 Feb 2025',
-        status: 'past',
-        budget: 3500,
-        spent: 3450,
-        expenses: [
-            { name: 'Vuelos', amount: 800, category: 'Transport', color: '#8884d8' },
-            { name: 'Hotel', amount: 1200, category: 'Lodging', color: '#82ca9d' },
-            { name: 'Comida', amount: 900, category: 'Food', color: '#ffc658' },
-            { name: 'Tours', amount: 550, category: 'Activities', color: '#ff8042' },
-        ]
-    }
-];
+import { createSharedGoal } from '@/lib/actions/shared-planner';
 
 export default function TravelPlannerPage() {
     const { formatCurrency } = useSettings();
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
-    const [trips, setTrips] = useState(TRIPS_MOCK);
-    
+    const [trips, setTrips] = useState([]);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [newTrip, setNewTrip] = useState({ destination: '', dateStr: '', budget: '' });
 
+    const fetchTrips = async () => {
+        try {
+            const res = await fetch('/api/travel');
+            if (res.ok) {
+                const data = await res.json();
+                setTrips(data);
+            }
+        } catch (error) {
+            console.error('Error fetching trips:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 500);
-        return () => clearTimeout(timer);
+        fetchTrips();
     }, []);
 
-    const handleAddTrip = () => {
+    const handleAddTrip = async () => {
         if (!newTrip.destination || !newTrip.budget) return;
-        setTrips(prev => [{
-            id: Date.now(),
-            destination: newTrip.destination,
-            dateStr: newTrip.dateStr || 'TBD',
-            status: 'upcoming',
-            budget: parseFloat(newTrip.budget) || 0,
-            spent: 0,
-            expenses: []
-        }, ...prev]);
-        setNewTrip({ destination: '', dateStr: '', budget: '' });
-        setIsAddOpen(false);
+        setIsSaving(true);
+        try {
+            const data = {
+                title: newTrip.destination,
+                targetAmount: parseFloat(newTrip.budget) || 0,
+                targetDate: newTrip.dateStr || null,
+                type: 'travel',
+                description: 'Viaje planificado',
+            };
+            const res = await createSharedGoal(data);
+            if (res.success) {
+                await fetchTrips();
+                setNewTrip({ destination: '', dateStr: '', budget: '' });
+                setIsAddOpen(false);
+            } else {
+                alert(res.error || 'Error al crear el viaje');
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -250,8 +247,10 @@ export default function TravelPlannerPage() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsAddOpen(false)}>{t('common.cancel')}</Button>
-                            <Button onClick={handleAddTrip}>{t('common.save')}</Button>
+                            <Button variant="outline" onClick={() => setIsAddOpen(false)} disabled={isSaving}>{t('common.cancel')}</Button>
+                            <Button onClick={handleAddTrip} disabled={isSaving}>
+                                {isSaving ? t('common.loading') : t('common.save')}
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
