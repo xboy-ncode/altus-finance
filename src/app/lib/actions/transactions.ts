@@ -102,3 +102,82 @@ export async function deleteTransaction(txId: string, accountId: string, amount:
     return { success: false, error: 'Failed to delete transaction' }
   }
 }
+
+export async function createTransfer(formData: {
+  description: string
+  fromAmount: number
+  toAmount: number
+  date: string
+  fromAccountId: string
+  toAccountId: string
+  categoryId?: string
+  notes?: string
+}) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      // 1. Transaction: Expense from source account
+      const [outTx] = await tx.insert(transactions).values({
+        userId: user.id,
+        description: formData.description,
+        amount: (-Math.abs(formData.fromAmount)).toString(),
+        date: new Date(formData.date),
+        accountId: formData.fromAccountId,
+        categoryId: formData.categoryId,
+        merchant: 'Transferencia Saliente',
+      }).returning()
+
+      // 2. Update source account balance
+      const [fromAcc] = await tx.select({ balance: accounts.balance })
+        .from(accounts)
+        .where(eq(accounts.id, formData.fromAccountId))
+      if (fromAcc) {
+        await tx.update(accounts)
+          .set({ balance: (parseFloat(fromAcc.balance) - Math.abs(formData.fromAmount)).toString() })
+          .where(eq(accounts.id, formData.fromAccountId))
+      }
+
+      // 3. Transaction: Income to destination account
+      const [inTx] = await tx.insert(transactions).values({
+        userId: user.id,
+        description: formData.description,
+        amount: Math.abs(formData.toAmount).toString(),
+        date: new Date(formData.date),
+        accountId: formData.toAccountId,
+        categoryId: formData.categoryId,
+        merchant: 'Transferencia Entrante',
+      }).returning()
+
+      // 4. Update destination account balance
+      const [toAcc] = await tx.select({ balance: accounts.balance })
+        .from(accounts)
+        .where(eq(accounts.id, formData.toAccountId))
+      if (toAcc) {
+        await tx.update(accounts)
+          .set({ balance: (parseFloat(toAcc.balance) + Math.abs(formData.toAmount)).toString() })
+          .where(eq(accounts.id, formData.toAccountId))
+      }
+
+      return { outTx, inTx }
+    })
+
+    revalidatePath('/transactions')
+    revalidatePath('/dashboard')
+    revalidatePath('/accounts')
+
+    return { success: true, data: result.inTx } // Return one of them to update UI
+  } catch (error) {
+    console.error('Error creating transfer:', error)
+    return { success: false, error: 'Failed to create transfer' }
+  }
+}
+

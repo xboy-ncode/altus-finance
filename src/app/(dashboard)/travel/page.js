@@ -6,6 +6,7 @@ import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
+import Link from 'next/link';
 import {
     Dialog,
     DialogContent,
@@ -118,48 +119,51 @@ export default function TravelPlannerPage() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.1 }}
+                                                className="h-full"
                                             >
-                                                <Card className="group hover:border-primary/50 transition-colors cursor-pointer shadow-sm relative overflow-hidden h-full flex flex-col">
-                                                    {trip.status === 'past' && <div className="absolute inset-0 bg-muted/20 z-0 pointer-events-none" />}
-                                                    <CardContent className="p-5 relative z-10 flex-1 flex flex-col">
-                                                        <div className="flex justify-between items-start mb-4">
-                                                            <div>
-                                                                <h3 className="font-semibold text-lg flex items-center gap-1.5">
-                                                                    <MapPin className="h-4 w-4 text-primary" />
-                                                                    {trip.destination}
-                                                                </h3>
-                                                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                                                    <Calendar className="h-3 w-3" />
-                                                                    {trip.dateStr}
-                                                                </p>
-                                                            </div>
-                                                            <Badge variant={trip.status === 'upcoming' ? 'default' : 'secondary'} className="capitalize text-[10px]">
-                                                                {trip.status === 'upcoming' ? t('travel.upcomingBadge', 'Futuro') : t('travel.pastBadge', 'Pasado')}
-                                                            </Badge>
-                                                        </div>
-
-                                                        <div className="mt-auto pt-4 space-y-3 border-t border-border/50">
-                                                            <div className="flex justify-between items-end">
+                                                <Link href={`/travel/${trip.id}`} className="block h-full">
+                                                    <Card className="group hover:border-primary/50 transition-colors cursor-pointer shadow-sm relative overflow-hidden h-full flex flex-col">
+                                                        {trip.status === 'past' && <div className="absolute inset-0 bg-muted/20 z-0 pointer-events-none" />}
+                                                        <CardContent className="p-5 relative z-10 flex-1 flex flex-col">
+                                                            <div className="flex justify-between items-start mb-4">
                                                                 <div>
-                                                                    <p className="text-xs text-muted-foreground mb-0.5">{t('travel.spent', 'Gastado')}</p>
-                                                                    <p className={`font-semibold ${isOverBudget ? 'text-destructive' : ''}`}>{formatCurrency(trip.spent)}</p>
+                                                                    <h3 className="font-semibold text-lg flex items-center gap-1.5">
+                                                                        <MapPin className="h-4 w-4 text-primary" />
+                                                                        {trip.destination}
+                                                                    </h3>
+                                                                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                                                        <Calendar className="h-3 w-3" />
+                                                                        {trip.dateStr}
+                                                                    </p>
                                                                 </div>
-                                                                <div className="text-right">
-                                                                    <p className="text-xs text-muted-foreground mb-0.5">{t('travel.budget', 'Presupuesto')}</p>
-                                                                    <p className="font-medium text-sm">{formatCurrency(trip.budget)}</p>
+                                                                <Badge variant={trip.status === 'upcoming' ? 'default' : 'secondary'} className="capitalize text-[10px]">
+                                                                    {trip.status === 'upcoming' ? t('travel.upcomingBadge', 'Futuro') : t('travel.pastBadge', 'Pasado')}
+                                                                </Badge>
+                                                            </div>
+
+                                                            <div className="mt-auto pt-4 space-y-3 border-t border-border/50">
+                                                                <div className="flex justify-between items-end">
+                                                                    <div>
+                                                                        <p className="text-xs text-muted-foreground mb-0.5">{t('travel.spent', 'Gastado')}</p>
+                                                                        <p className={`font-semibold ${isOverBudget ? 'text-destructive' : ''}`}>{formatCurrency(trip.spent)}</p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <p className="text-xs text-muted-foreground mb-0.5">{t('travel.budget', 'Presupuesto')}</p>
+                                                                        <p className="font-medium text-sm">{formatCurrency(trip.budget)}</p>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                {/* Progress line */}
+                                                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                                                    <div 
+                                                                        className={`h-full ${isOverBudget ? 'bg-destructive' : 'bg-primary'} rounded-full transition-all`}
+                                                                        style={{ width: `${Math.min(100, progress)}%` }}
+                                                                    />
                                                                 </div>
                                                             </div>
-                                                            
-                                                            {/* Progress line */}
-                                                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                                                                <div 
-                                                                    className={`h-full ${isOverBudget ? 'bg-destructive' : 'bg-primary'} rounded-full transition-all`}
-                                                                    style={{ width: `${Math.min(100, progress)}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Link>
                                             </motion.div>
                                         );
                                     })}

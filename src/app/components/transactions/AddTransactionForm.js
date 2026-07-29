@@ -27,7 +27,7 @@ import { Label } from '@/app/components/ui/label';
 import { Button } from '@/app/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useTranslation } from 'react-i18next';
-import { createTransaction } from '@/app/lib/actions/transactions';
+import { createTransaction, createTransfer } from '@/app/lib/actions/transactions';
 import { getUserAccounts, getUserCategories } from '@/app/lib/actions/data-fetching';
 
 const iconMap = {
@@ -51,11 +51,13 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
     const [formData, setFormData] = useState({
         description: '',
         amount: '',
+        toAmount: '',
         date: new Date().toISOString().split('T')[0],
         type: 'Gasto',
         categoryId: '',
         merchant: '',
-        accountId: '',
+        accountId: '', // For expense/income, and source for transfer
+        toAccountId: '', // Destination for transfer
         notes: ''
     });
 
@@ -87,30 +89,65 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
 
-        if (!formData.description || !formData.amount || !formData.date || !formData.accountId) {
+        const isTransfer = formData.type === 'Transferencia';
+
+        if (!formData.description || !formData.date || !formData.accountId) {
+            alert(t('transactions.addFieldsRequired', 'Por favor complete todos los campos obligatorios'));
+            return;
+        }
+
+        if (isTransfer) {
+            if (!formData.toAccountId || !formData.amount || !formData.toAmount) {
+                alert(t('transactions.addFieldsRequired', 'Por favor complete todos los campos obligatorios para la transferencia (ambas cuentas y montos)'));
+                return;
+            }
+            if (formData.accountId === formData.toAccountId) {
+                alert('La cuenta origen y destino deben ser distintas');
+                return;
+            }
+        } else if (!formData.amount) {
             alert(t('transactions.addFieldsRequired', 'Por favor complete todos los campos obligatorios'));
             return;
         }
 
         setLoading(true);
         try {
-            const amountNum = parseFloat(formData.amount);
-            const finalAmount = formData.type === 'Gasto' ? -Math.abs(amountNum) : Math.abs(amountNum);
+            if (isTransfer) {
+                const result = await createTransfer({
+                    description: formData.description,
+                    fromAmount: parseFloat(formData.amount),
+                    toAmount: parseFloat(formData.toAmount),
+                    date: formData.date,
+                    fromAccountId: formData.accountId,
+                    toAccountId: formData.toAccountId,
+                    categoryId: formData.categoryId || undefined,
+                    notes: formData.notes || undefined,
+                });
 
-            const result = await createTransaction({
-                description: formData.description,
-                amount: finalAmount,
-                date: formData.date,
-                accountId: formData.accountId,
-                categoryId: formData.categoryId || undefined,
-                merchant: formData.merchant || undefined,
-                notes: formData.notes || undefined,
-            });
-
-            if (result.success) {
-                onAddTransaction(result.data);
+                if (result.success) {
+                    onAddTransaction(result.data);
+                } else {
+                    alert(result.error || 'Error al guardar la transferencia');
+                }
             } else {
-                alert(result.error || 'Error al guardar la transacción');
+                const amountNum = parseFloat(formData.amount);
+                const finalAmount = formData.type === 'Gasto' ? -Math.abs(amountNum) : Math.abs(amountNum);
+
+                const result = await createTransaction({
+                    description: formData.description,
+                    amount: finalAmount,
+                    date: formData.date,
+                    accountId: formData.accountId,
+                    categoryId: formData.categoryId || undefined,
+                    merchant: formData.merchant || undefined,
+                    notes: formData.notes || undefined,
+                });
+
+                if (result.success) {
+                    onAddTransaction(result.data);
+                } else {
+                    alert(result.error || 'Error al guardar la transacción');
+                }
             }
         } catch (error) {
             console.error(error);
@@ -155,29 +192,44 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>{t('transactions.description', 'Descripción')}*</Label>
                             <Input
                                 disabled={loading}
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Ej: Supermercado"
+                                placeholder={formData.type === 'Transferencia' ? "Ej: Cambio P2P USDT a Bs" : "Ej: Supermercado"}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label>{t('transactions.amount', 'Monto')}*</Label>
-                            <Input
-                                disabled={loading}
-                                type="number"
-                                placeholder="0.00"
-                                value={formData.amount}
-                                onChange={e => setFormData({ ...formData, amount: e.target.value })}
-                            />
-                        </div>
+                        {formData.type === 'Transferencia' ? (
+                            <div className="space-y-2">
+                                <Label>Monto Enviado (Origen)*</Label>
+                                <Input
+                                    disabled={loading}
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.amount}
+                                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
+                                />
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label>{t('transactions.amount', 'Monto')}*</Label>
+                                <Input
+                                    disabled={loading}
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.amount}
+                                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>{t('transactions.date', 'Fecha')}*</Label>
                             <Input
@@ -188,7 +240,7 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>{t('transactions.account', 'Cuenta')}*</Label>
+                            <Label>{formData.type === 'Transferencia' ? 'Cuenta Origen' : t('transactions.account', 'Cuenta')}*</Label>
                             <Select 
                                 disabled={loading}
                                 value={formData.accountId} 
@@ -197,12 +249,43 @@ export default function AddTransactionForm({ onAddTransaction, onCancel }) {
                                 <SelectTrigger><SelectValue placeholder="Selecciona cuenta" /></SelectTrigger>
                                 <SelectContent>
                                     {dbAccounts.map(acc => (
-                                        <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                                        <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.currency})</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
+
+                    {formData.type === 'Transferencia' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Monto Recibido (Destino)*</Label>
+                                <Input
+                                    disabled={loading}
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.toAmount}
+                                    onChange={e => setFormData({ ...formData, toAmount: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Cuenta Destino*</Label>
+                                <Select 
+                                    disabled={loading}
+                                    value={formData.toAccountId} 
+                                    onValueChange={v => setFormData({ ...formData, toAccountId: v })}
+                                >
+                                    <SelectTrigger><SelectValue placeholder="Selecciona cuenta destino" /></SelectTrigger>
+                                    <SelectContent>
+                                        {dbAccounts.map(acc => (
+                                            <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.currency})</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <Label>{t('transactions.category', 'Categoría')}*</Label>
