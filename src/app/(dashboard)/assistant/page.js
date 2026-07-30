@@ -103,6 +103,10 @@ export default function AssistantPage() {
                     </div>
                 </div>
 
+                <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-3 text-sm text-indigo-700 dark:text-indigo-400 flex items-center justify-center">
+                    🚀 <strong>Próximamente:</strong> ¡La integración real con IA está en desarrollo! Por ahora puedes probar una demostración interactiva de cómo funcionará.
+                </div>
+
                 {/* Chat Container */}
                 <Card className="flex-1 flex flex-col shadow-md overflow-hidden border-indigo-500/10">
                     {/* Message Area */}

@@ -302,7 +302,7 @@ export default function TransactionsPage() {
 
                 {/* Transaction Detail Sheet */}
                 <Sheet open={!!selectedTx} onOpenChange={(open) => { if (!open) setSelectedTx(null); }}>
-                    <SheetContent className="sm:max-w-md overflow-y-auto">
+                    <SheetContent className="sm:max-w-md overflow-y-auto p-6 sm:p-8">
                         <SheetHeader>
                             <SheetTitle>{t('transactions.detailTitle')}</SheetTitle>
                         </SheetHeader>
@@ -312,7 +312,7 @@ export default function TransactionsPage() {
                                     <Badge variant={typeBadge[selectedTx.type] || 'secondary'} className="text-sm px-3 py-1">
                                         {selectedTx.type}
                                     </Badge>
-                                    <span className={`text-2xl font-bold ${typeColors[selectedTx.type]}`}>
+                                    <span className={`text-3xl font-bold ${selectedTx.type === 'Transferencia' ? 'text-blue-600 dark:text-blue-400' : typeColors[selectedTx.type]}`}>
                                         {selectedTx.amount < 0 ? '-' : selectedTx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(selectedTx.amount))}
                                     </span>
                                 </div>

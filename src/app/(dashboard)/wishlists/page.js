@@ -23,7 +23,8 @@ import PageLoader from '@/app/components/ui/page-loader';
 import { useSettings } from '@/app/components/contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Plus, MoreVertical, Edit, Trash2, Heart, Car, MapPin, Laptop, ShieldAlert, Sparkles } from 'lucide-react';
+import { Target, Plus, MoreVertical, Edit, Trash2, Heart, Car, MapPin, Laptop, ShieldAlert, Sparkles, ExternalLink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // Reusable animated progress bar
 const AnimatedProgress = ({ value, colorClass }) => {
@@ -50,23 +51,33 @@ const ICONS = {
 export default function WishlistsPage() {
     const { formatCurrency } = useSettings();
     const { t } = useTranslation();
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const [goals, setGoals] = useState([
-        { id: 1, name: 'Viaje a Japón', target: 5000, current: 2100, type: 'travel' },
-        { id: 2, name: 'Fondo de Emergencia', target: 10000, current: 8500, type: 'emergency' },
-        { id: 3, name: 'MacBook Pro', target: 2400, current: 600, type: 'tech' },
-        { id: 4, name: 'Enganche Coche', target: 15000, current: 2000, type: 'car' },
-    ]);
+    const [goals, setGoals] = useState([]);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState(null);
     const [formData, setFormData] = useState({ name: '', target: '', current: '', type: 'custom' });
 
+    const fetchGoals = async () => {
+        try {
+            const res = await fetch('/api/wishlists');
+            if (res.ok) {
+                const data = await res.json();
+                setGoals(data);
+            }
+        } catch (error) {
+            console.error('Error fetching goals:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 500);
-        return () => clearTimeout(timer);
+        fetchGoals();
     }, []);
 
     const openCreate = () => {
@@ -81,30 +92,46 @@ export default function WishlistsPage() {
         setIsDialogOpen(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!formData.name || !formData.target) return;
-        
-        const newGoal = {
-            id: editingGoal ? editingGoal.id : Date.now(),
-            name: formData.name,
-            target: parseFloat(formData.target) || 0,
-            current: parseFloat(formData.current) || 0,
-            type: formData.type,
-        };
-
-        if (editingGoal) {
-            setGoals(prev => prev.map(g => g.id === editingGoal.id ? newGoal : g));
-        } else {
-            setGoals(prev => [...prev, newGoal]);
+        setIsSaving(true);
+        try {
+            if (editingGoal) {
+                const res = await fetch(`/api/wishlists/${editingGoal.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                if (res.ok) await fetchGoals();
+            } else {
+                const res = await fetch('/api/wishlists', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                if (res.ok) await fetchGoals();
+            }
+            setIsDialogOpen(false);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSaving(false);
         }
-        setIsDialogOpen(false);
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (editingGoal) {
-            setGoals(prev => prev.filter(g => g.id !== editingGoal.id));
-            setIsDeleteDialogOpen(false);
-            setEditingGoal(null);
+            setIsSaving(true);
+            try {
+                const res = await fetch(`/api/wishlists/${editingGoal.id}`, { method: 'DELETE' });
+                if (res.ok) await fetchGoals();
+                setIsDeleteDialogOpen(false);
+                setEditingGoal(null);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -181,7 +208,10 @@ export default function WishlistsPage() {
                                         exit={{ opacity: 0, scale: 0.95 }}
                                         transition={{ delay: i * 0.05 }}
                                     >
-                                        <Card className={`group relative overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full flex flex-col ${isComplete ? 'border-emerald-500/50' : ''}`}>
+                                        <Card 
+                                            className={`group relative overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full flex flex-col cursor-pointer ${isComplete ? 'border-emerald-500/50' : ''}`}
+                                            onClick={() => router.push(goal.type === 'travel' ? `/travel/${goal.id}` : `/shared-planner/${goal.id}`)}
+                                        >
                                             {isComplete && (
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-bl-full -mr-4 -mt-4 z-0 pointer-events-none" />
                                             )}
@@ -200,24 +230,27 @@ export default function WishlistsPage() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 -mt-2">
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => openEdit(goal)}>
-                                                                <Edit className="h-4 w-4 mr-2" /> {t('common.edit')}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => {
-                                                                setEditingGoal(goal);
-                                                                setIsDeleteDialogOpen(true);
-                                                            }}>
-                                                                <Trash2 className="h-4 w-4 mr-2" /> {t('common.delete')}
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                    <div onClick={(e) => e.stopPropagation()}>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity -mr-2 -mt-2">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(goal); }}>
+                                                                    <Edit className="h-4 w-4 mr-2" /> {t('common.edit')}
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setEditingGoal(goal);
+                                                                    setIsDeleteDialogOpen(true);
+                                                                }}>
+                                                                    <Trash2 className="h-4 w-4 mr-2" /> {t('common.delete')}
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
                                                 </div>
 
                                                 <div className="mt-auto space-y-4">

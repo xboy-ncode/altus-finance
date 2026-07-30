@@ -79,7 +79,7 @@ export default async function SharedGoalDetailsPage({ params }) {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 max-w-5xl mx-auto">
       {/* Banner de Solicitudes (Solo Owner) */}
-      {isOwner && pendingMembers.length > 0 && (
+      {isOwner && goal.isPublic && pendingMembers.length > 0 && (
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h4 className="font-semibold text-primary flex items-center gap-2">
@@ -105,10 +105,12 @@ export default async function SharedGoalDetailsPage({ params }) {
         </div>
         
         <div className="flex gap-2">
-           <div className="bg-muted px-4 py-2 rounded-md flex items-center gap-2 border border-border/50">
-             <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Código de Invitación</span>
-             <span className="font-mono font-bold tracking-widest">{goal.inviteCode}</span>
-           </div>
+           {!goal.isPublic ? null : (
+             <div className="bg-muted px-4 py-2 rounded-md flex items-center gap-2 border border-border/50">
+               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Código de Invitación</span>
+               <span className="font-mono font-bold tracking-widest">{goal.inviteCode}</span>
+             </div>
+           )}
            {isOwner && (
              <Link href={`/shared-planner/${goal.id}/settings`}>
                <Button variant="outline" size="icon"><Settings className="h-4 w-4" /></Button>
@@ -143,7 +145,9 @@ export default async function SharedGoalDetailsPage({ params }) {
           <Tabs defaultValue="feed" className="w-full">
             <TabsList className="w-full justify-start border-b rounded-none h-auto bg-transparent p-0">
               <TabsTrigger value="feed" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Aportes y Notas</TabsTrigger>
-              <TabsTrigger value="members" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Miembros ({activeMembers.length})</TabsTrigger>
+              {goal.isPublic && (
+                <TabsTrigger value="members" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Miembros ({activeMembers.length})</TabsTrigger>
+              )}
               <TabsTrigger value="media" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Galería</TabsTrigger>
             </TabsList>
             
