@@ -242,7 +242,7 @@ export default function TransactionsPage() {
                                         {/* Amount */}
                                         <div className="md:col-span-2 flex items-center md:justify-end">
                                             <span className={`font-semibold text-sm ${typeColors[tx.type]}`}>
-                                                {tx.type === 'Gasto' ? '-' : tx.type === 'Ingreso' ? '+' : ''}{formatCurrency(Math.abs(tx.amount))}
+                                                {tx.amount < 0 ? '-' : tx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(tx.amount))}
                                             </span>
                                         </div>
                                         {/* Actions */}
@@ -313,7 +313,7 @@ export default function TransactionsPage() {
                                         {selectedTx.type}
                                     </Badge>
                                     <span className={`text-2xl font-bold ${typeColors[selectedTx.type]}`}>
-                                        {selectedTx.type === 'Gasto' ? '-' : '+'}{formatCurrency(Math.abs(selectedTx.amount))}
+                                        {selectedTx.amount < 0 ? '-' : selectedTx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(selectedTx.amount))}
                                     </span>
                                 </div>
 

@@ -30,17 +30,28 @@ export async function GET() {
     .where(eq(transactions.userId, user.id))
     .orderBy(desc(transactions.date))
 
-    const formattedTxs = userTransactions.map(tx => ({
-      id: tx.id,
-      description: tx.description,
-      amount: parseFloat(tx.amount),
-      date: tx.date,
-      merchant: tx.merchant,
-      type: tx.type === 'income' ? 'Ingreso' : tx.type === 'expense' ? 'Gasto' : 'Transferencia',
-      category: tx.categoryName || 'General',
-      account: tx.accountName || 'Cuenta',
-      accountId: tx.accountId,
-    }))
+    const formattedTxs = userTransactions.map(tx => {
+      let resolvedType = 'Gasto';
+      if (tx.merchant?.startsWith('Transferencia')) {
+        resolvedType = 'Transferencia';
+      } else if (parseFloat(tx.amount) > 0) {
+        resolvedType = 'Ingreso';
+      } else if (tx.type === 'income') {
+        resolvedType = 'Ingreso';
+      }
+
+      return {
+        id: tx.id,
+        description: tx.description,
+        amount: parseFloat(tx.amount),
+        date: tx.date,
+        merchant: tx.merchant,
+        type: resolvedType,
+        category: tx.categoryName || 'General',
+        account: tx.accountName || 'Cuenta',
+        accountId: tx.accountId,
+      };
+    });
 
     return NextResponse.json(formattedTxs)
   } catch (error) {
