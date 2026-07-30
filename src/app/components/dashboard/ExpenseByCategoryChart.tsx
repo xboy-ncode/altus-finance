@@ -33,18 +33,19 @@ export function ExpenseByCategoryChart({ data = [] }: { data: ExpenseData[] }) {
     
     const processed = data.map((item, index) => {
       // Creamos una clave única para la configuración basada en el nombre de la categoría
-      const configKey = item.category.toLowerCase().replace(/\s+/g, "_")
+      const categoryName = item.category || "Uncategorized"
+      const configKey = categoryName.toLowerCase().replace(/\s+/g, "_")
       
       // Asignamos colores rotativos de shadcn (chart-1 al chart-5)
       const colorIndex = (index % 5) + 1
       
       config[configKey] = {
-        label: item.category, // Este es el nombre que saldrá en la leyenda
+        label: categoryName, // Este es el nombre que saldrá en la leyenda
         color: `var(--chart-${colorIndex})`,
       }
 
       return {
-        categoryName: item.category, // Guardamos el nombre original
+        categoryName: categoryName, // Guardamos el nombre original
         amount: item.amount,
         fill: `var(--chart-${colorIndex})`, // Usamos directamente la variable de color
         configKey: configKey // Referencia para la leyenda
