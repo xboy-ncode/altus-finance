@@ -93,11 +93,11 @@ const data = {
       url: "/wishlists",
       icon: GemIcon,
     },
-    {
-      name: "Travel Planner",
-      url: "/travel",
-      icon: Map,
-    },
+    // {
+    //   name: "Travel Planner",
+    //   url: "/travel",
+    //   icon: Map,
+    // },
     {
       name: "Shared Planner",
       url: "/shared-planner",

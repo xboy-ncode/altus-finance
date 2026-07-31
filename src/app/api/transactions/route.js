@@ -23,6 +23,7 @@ export async function GET() {
       categoryName: categories.name,
       accountName: accounts.name,
       accountId: transactions.accountId,
+      currency: accounts.currency,
     })
     .from(transactions)
     .leftJoin(categories, eq(transactions.categoryId, categories.id))
@@ -50,6 +51,7 @@ export async function GET() {
         category: tx.categoryName || 'General',
         account: tx.accountName || 'Cuenta',
         accountId: tx.accountId,
+        currency: tx.currency,
       };
     });
 

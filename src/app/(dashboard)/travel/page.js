@@ -121,7 +121,7 @@ export default function TravelPlannerPage() {
                                                 transition={{ delay: i * 0.1 }}
                                                 className="h-full"
                                             >
-                                                <Link href={`/travel/${trip.id}`} className="block h-full">
+                                                <Link href={`/shared-planner/${trip.id}?tab=expenses`} className="block h-full">
                                                     <Card className="group hover:border-primary/50 transition-colors cursor-pointer shadow-sm relative overflow-hidden h-full flex flex-col">
                                                         {trip.status === 'past' && <div className="absolute inset-0 bg-muted/20 z-0 pointer-events-none" />}
                                                         <CardContent className="p-5 relative z-10 flex-1 flex flex-col">

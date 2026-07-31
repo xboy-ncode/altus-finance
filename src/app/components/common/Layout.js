@@ -23,6 +23,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Layout({ children, user, subscription }) {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const [overrideTitle, setOverrideTitle] = React.useState(null);
+
+  React.useEffect(() => {
+    const handleOverride = (e) => setOverrideTitle(e.detail);
+    const handleClear = () => setOverrideTitle(null);
+    window.addEventListener('setBreadcrumbTitle', handleOverride);
+    // Reset override when pathname changes
+    setOverrideTitle(null);
+    return () => window.removeEventListener('setBreadcrumbTitle', handleOverride);
+  }, [pathname]);
 
   // Memorizamos los breadcrumbs para rendimiento
   const breadcrumbs = useMemo(() => {
@@ -43,14 +53,20 @@ export default function Layout({ children, user, subscription }) {
       // Evitar agregar "Dashboard" otra vez si ya está en la raíz
       if (segment === 'dashboard' && index === 0) return;
 
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+      let title = t(`nav.${segment}`, { defaultValue: segment.charAt(0).toUpperCase() + segment.slice(1) });
+      if (isUUID) {
+        title = overrideTitle || t('nav.details', { defaultValue: 'Detalles' });
+      }
+
       list.push({
-        title: t(`nav.${segment}`, { defaultValue: segment.charAt(0).toUpperCase() + segment.slice(1) }),
+        title,
         href: currentPath,
         isLast
       });
     });
     return list;
-  }, [pathname, t]);
+  }, [pathname, t, overrideTitle]);
 
   return (
     <SidebarProvider>

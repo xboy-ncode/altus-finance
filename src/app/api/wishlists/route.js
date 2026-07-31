@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { sharedGoals, sharedGoalContributions } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { sharedGoalMembers } from '@/db/schema';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -77,6 +78,15 @@ export async function POST(request) {
         note: 'Initial contribution',
       });
     }
+
+    // Always insert the creator as an owner member
+    await db.insert(sharedGoalMembers).values({
+      goalId: newGoal.id,
+      userId: user.id,
+      role: 'owner',
+      status: 'active',
+      joinedAt: new Date()
+    });
 
     return NextResponse.json({ 
       id: newGoal.id, 

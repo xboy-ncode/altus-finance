@@ -182,11 +182,20 @@ export function SettingsProvider({ children }) {
         [persistSettings]
     );
 
-    // Format currency using the selected currency setting
+    // Format currency using the selected currency setting or override
     const formatCurrency = useCallback(
-        (amount) => {
-            if (amount === undefined || amount === null) return `${CURRENCY_MAP[settings.currency]?.symbol || '$'}0.00`;
-            const curr = CURRENCY_MAP[settings.currency] || CURRENCY_MAP.USD;
+        (amount, currencyCodeOverride) => {
+            const targetCurrency = currencyCodeOverride || settings.currency;
+            if (amount === undefined || amount === null) return `${CURRENCY_MAP[targetCurrency]?.symbol || '$'}0.00`;
+            
+            // Si la moneda no está en el mapa, usamos un fallback básico
+            let curr = CURRENCY_MAP[targetCurrency];
+            if (!curr) {
+                // Soporte genérico para VES si no está en CURRENCY_MAP
+                if (targetCurrency === 'VES') curr = { code: 'VES', symbol: 'Bs', locale: 'es-VE' };
+                else curr = CURRENCY_MAP.USD;
+            }
+
             return new Intl.NumberFormat(curr.locale, {
                 style: 'currency',
                 currency: curr.code,

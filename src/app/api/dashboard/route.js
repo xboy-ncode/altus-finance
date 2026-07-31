@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
 import { accounts, transactions, categories } from '@/db/schema'
-import { eq, and, gte, lte, sum, count } from 'drizzle-orm'
+import { eq, and, gte, lte, sum, count, desc } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 
 export async function GET(request) {

@@ -241,8 +241,12 @@ export default function TransactionsPage() {
                                         </div>
                                         {/* Amount */}
                                         <div className="md:col-span-2 flex items-center md:justify-end">
-                                            <span className={`font-semibold text-sm ${typeColors[tx.type]}`}>
-                                                {tx.amount < 0 ? '-' : tx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(tx.amount))}
+                                            <span className={`font-semibold text-sm ${
+                                                tx.type === 'Transferencia' 
+                                                    ? (tx.amount < 0 ? 'text-slate-600 dark:text-slate-400' : typeColors[tx.type]) 
+                                                    : typeColors[tx.type]
+                                            }`}>
+                                                {tx.amount < 0 ? '-' : tx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(tx.amount), tx.currency)}
                                             </span>
                                         </div>
                                         {/* Actions */}
@@ -312,8 +316,12 @@ export default function TransactionsPage() {
                                     <Badge variant={typeBadge[selectedTx.type] || 'secondary'} className="text-sm px-3 py-1">
                                         {selectedTx.type}
                                     </Badge>
-                                    <span className={`text-3xl font-bold ${selectedTx.type === 'Transferencia' ? 'text-blue-600 dark:text-blue-400' : typeColors[selectedTx.type]}`}>
-                                        {selectedTx.amount < 0 ? '-' : selectedTx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(selectedTx.amount))}
+                                    <span className={`text-3xl font-bold ${
+                                        selectedTx.type === 'Transferencia' 
+                                            ? (selectedTx.amount < 0 ? 'text-slate-600 dark:text-slate-400' : 'text-blue-600 dark:text-blue-400') 
+                                            : typeColors[selectedTx.type]
+                                    }`}>
+                                        {selectedTx.amount < 0 ? '-' : selectedTx.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(selectedTx.amount), selectedTx.currency)}
                                     </span>
                                 </div>
 

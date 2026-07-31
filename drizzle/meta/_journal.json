@@ -15,6 +15,13 @@
       "when": 1785362822403,
       "tag": "0001_hard_bromley",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785455548776,
+      "tag": "0002_nice_callisto",
+      "breakpoints": true
     }
   ]
 }

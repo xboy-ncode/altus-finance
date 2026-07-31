@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/db'
-import { sharedGoals, sharedGoalMembers, sharedGoalContributions } from '@/db/schema'
+import { sharedGoals, sharedGoalMembers, sharedGoalContributions, accounts, transactions } from '@/db/schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { customAlphabet } from 'nanoid'
 import { revalidatePath } from 'next/cache'
@@ -119,16 +119,51 @@ export async function acceptMember(goalId, userId) {
   }
 }
 
-export async function addContribution(goalId, amount, note = '') {
+export async function addContribution(goalId, amount, note = '', accountId, exchangeRate = 1) {
   try {
     const user = await getUser()
 
+    // 1. Registrar el aporte a la meta (en la moneda de la meta, por ej. USDT)
     await db.insert(sharedGoalContributions).values({
       goalId,
       userId: user.id,
       amount,
       note,
     })
+
+    // 2. Si se especificó una cuenta, descontar y registrar el egreso
+    if (accountId) {
+      const [account] = await db.select().from(accounts).where(eq(accounts.id, accountId))
+      
+      if (account) {
+        // Calcular el monto a descontar según la moneda de la cuenta
+        // Si la cuenta es VES, multiplicamos el aporte (USD) por la tasa (exchangeRate)
+        const deductedAmount = account.currency === 'VES' 
+          ? (parseFloat(amount) * parseFloat(exchangeRate)).toFixed(2)
+          : parseFloat(amount).toFixed(2);
+          
+        // Actualizar balance
+        await db.update(accounts)
+          .set({
+            balance: sql`${accounts.balance} - ${deductedAmount}`
+          })
+          .where(eq(accounts.id, accountId));
+
+        // Consultar el nombre de la meta para la descripción
+        const [goal] = await db.select({ title: sharedGoals.title }).from(sharedGoals).where(eq(sharedGoals.id, goalId))
+        const goalName = goal ? goal.title : 'Meta Financiera';
+
+        // Registrar la transacción
+        await db.insert(transactions).values({
+          userId: user.id,
+          accountId: accountId,
+          amount: `-${deductedAmount}`,
+          description: `Aporte a: ${goalName}`,
+          merchant: note || 'Meta Financiera',
+          date: new Date(),
+        })
+      }
+    }
 
     revalidatePath(`/shared-planner/${goalId}`)
     return { success: true }

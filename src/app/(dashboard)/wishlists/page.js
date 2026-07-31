@@ -210,7 +210,7 @@ export default function WishlistsPage() {
                                     >
                                         <Card 
                                             className={`group relative overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full flex flex-col cursor-pointer ${isComplete ? 'border-emerald-500/50' : ''}`}
-                                            onClick={() => router.push(goal.type === 'travel' ? `/travel/${goal.id}` : `/shared-planner/${goal.id}`)}
+                                            onClick={() => router.push(`/shared-planner/${goal.id}`)}
                                         >
                                             {isComplete && (
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-bl-full -mr-4 -mt-4 z-0 pointer-events-none" />
@@ -354,7 +354,7 @@ export default function WishlistsPage() {
                             <DialogTitle className="text-destructive font-semibold">{t('wishlists.deleteGoal', 'Eliminar Meta')}</DialogTitle>
                         </DialogHeader>
                         <p className="text-sm">{t('wishlists.confirmDelete', '¿Eliminar la meta')} <strong>{editingGoal?.name}</strong>?</p>
-                        <p className="text-xs text-muted-foreground">{t('common.cannotUndo')}</p>
+                        <p className="text-xs text-muted-foreground">{t('common.cannotUndo', 'Esta acción no se puede deshacer.')}</p>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
                             <Button variant="destructive" onClick={handleDelete}>{t('common.delete')}</Button>

@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import { sharedGoals, sharedGoalMembers, sharedGoalContributions } from '@/db/schema'
+import { sharedGoals, sharedGoalMembers, sharedGoalContributions, travelExpenses, accounts } from '@/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
@@ -9,17 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/app
 import { Badge } from '@/app/components/ui/badge'
 import { Progress } from '@/app/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs'
-import { CopyIcon, Users, Settings, Plus, Check } from 'lucide-react'
+import { CopyIcon, Users, Settings, Plus, Check, Banknote, Hourglass } from 'lucide-react'
 import { acceptMember } from '@/lib/actions/shared-planner'
 import { AcceptMemberButton } from './AcceptMemberButton'
 import { ContributeModal } from './ContributeModal'
+import { SettingsButton } from './SettingsButton'
+import { BreadcrumbOverride } from '@/app/components/common/BreadcrumbOverride'
+import TravelExpensesList from '@/app/(dashboard)/travel/[id]/TravelExpensesList'
 
-export default async function SharedGoalDetailsPage({ params }) {
+export default async function SharedGoalDetailsPage({ params, searchParams }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { id } = await params
+  const resolvedSearchParams = await searchParams
+  const defaultTab = resolvedSearchParams?.tab || 'feed'
   
   // Buscar meta y sus relaciones
   const goal = await db.query.sharedGoals.findFirst({
@@ -35,38 +40,49 @@ export default async function SharedGoalDetailsPage({ params }) {
           user: true
         },
         orderBy: [desc(sharedGoalContributions.createdAt)]
+      },
+      travelExpenses: {
+        orderBy: [desc(travelExpenses.createdAt)]
       }
     }
   })
 
   if (!goal) notFound()
 
-  // Verificar que el usuario actual sea miembro (activo o pending)
+  // Verificar que el usuario actual sea miembro (activo o pending) o el creador
   const currentMember = goal.members.find(m => m.userId === user.id)
-  if (!currentMember) {
+  const isCreator = goal.creatorId === user.id
+  
+  if (!currentMember && !isCreator) {
     return (
       <div className="flex-1 p-8 text-center mt-20">
         <h2 className="text-2xl font-bold">No tienes acceso a esta meta</h2>
         <p className="text-muted-foreground mt-2">Pide al creador que te invite.</p>
-        <Link href="/shared-planner"><Button className="mt-4">Volver</Button></Link>
+        <Link href="/wishlists"><Button className="mt-4">Volver</Button></Link>
       </div>
     )
   }
 
-  const isOwner = currentMember.role === 'owner'
-  const isPending = currentMember.status === 'pending'
+  const isOwner = isCreator || (currentMember?.role === 'owner')
+  const isPending = currentMember?.status === 'pending'
   const activeMembers = goal.members.filter(m => m.status === 'active')
   const pendingMembers = goal.members.filter(m => m.status === 'pending')
   
-  // Calcular progreso
+  // Calcular progreso y gastos
   const totalAmount = goal.contributions.reduce((sum, c) => sum + Number(c.amount), 0)
+  const totalSpent = goal.travelExpenses ? goal.travelExpenses.reduce((sum, e) => sum + Number(e.amount), 0) : 0
   const target = Number(goal.targetAmount)
-  const progressPercent = Math.min((totalAmount / target) * 100, 100)
+  const progressPercent = target > 0 ? Math.min((totalAmount / target) * 100, 100) : 0
+  const remaining = totalAmount - totalSpent
+  // Obtener cuentas del usuario para el modal de contribución
+  const userAccounts = await db.select().from(accounts).where(eq(accounts.userId, user.id))
 
   if (isPending) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[50vh]">
-        <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center text-4xl mb-6">⏳</div>
+        <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mb-6">
+          <Hourglass className="h-8 w-8 text-muted-foreground" />
+        </div>
         <h2 className="text-3xl font-bold mb-2">Solicitud Pendiente</h2>
         <p className="text-muted-foreground max-w-md">
           Estás esperando a que el creador de <strong>{goal.title}</strong> acepte tu solicitud para unirte al plan. Vuelve más tarde.
@@ -77,7 +93,9 @@ export default async function SharedGoalDetailsPage({ params }) {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-4 md:p-8 pt-6 max-w-5xl mx-auto">
+    <div className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <BreadcrumbOverride title={goal.title} />
+
       {/* Banner de Solicitudes (Solo Owner) */}
       {isOwner && goal.isPublic && pendingMembers.length > 0 && (
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -112,9 +130,12 @@ export default async function SharedGoalDetailsPage({ params }) {
              </div>
            )}
            {isOwner && (
-             <Link href={`/shared-planner/${goal.id}/settings`}>
-               <Button variant="outline" size="icon"><Settings className="h-4 w-4" /></Button>
-             </Link>
+             <SettingsButton 
+               goalId={goal.id} 
+               initialName={goal.title} 
+               initialTarget={goal.targetAmount} 
+               initialType={goal.type}
+             />
            )}
         </div>
       </div>
@@ -132,9 +153,9 @@ export default async function SharedGoalDetailsPage({ params }) {
               <div className="flex justify-between items-end mb-4">
                 <div>
                   <span className="text-4xl font-black">{goal.currency} {totalAmount.toLocaleString()}</span>
-                  <span className="text-muted-foreground ml-2">de {target.toLocaleString()}</span>
+                  <span className="text-muted-foreground ml-2">ahorrados de {target.toLocaleString()}</span>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end">
                   <span className="text-2xl font-bold text-primary">{progressPercent.toFixed(1)}%</span>
                 </div>
               </div>
@@ -142,9 +163,10 @@ export default async function SharedGoalDetailsPage({ params }) {
             </CardContent>
           </Card>
 
-          <Tabs defaultValue="feed" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="w-full justify-start border-b rounded-none h-auto bg-transparent p-0">
               <TabsTrigger value="feed" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Aportes y Notas</TabsTrigger>
+              <TabsTrigger value="expenses" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Gastos</TabsTrigger>
               {goal.isPublic && (
                 <TabsTrigger value="members" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary px-6 py-3">Miembros ({activeMembers.length})</TabsTrigger>
               )}
@@ -163,7 +185,9 @@ export default async function SharedGoalDetailsPage({ params }) {
                  ) : (
                    goal.contributions.map(c => (
                      <div key={c.id} className="flex items-start gap-4 p-4 rounded-lg bg-card border">
-                       <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">💸</div>
+                       <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          <Banknote className="h-5 w-5 text-primary" />
+                        </div>
                        <div className="flex-1">
                          <div className="flex justify-between">
                            <p className="font-semibold">{c.user.fullName || 'Usuario'}</p>
@@ -176,6 +200,34 @@ export default async function SharedGoalDetailsPage({ params }) {
                    ))
                  )}
                </div>
+            </TabsContent>
+
+            <TabsContent value="expenses" className="pt-6">
+                <div className="bg-card border rounded-lg overflow-hidden flex flex-col h-[600px]">
+                  <div className="p-6 border-b bg-muted/20">
+                    <h3 className="font-semibold text-lg">Desglose de Presupuesto</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Organiza los gastos futuros de esta meta. Tus ahorros irán cubriendo los ítems en orden de prioridad.</p>
+                    <div className="mt-4 flex gap-4">
+                      <div className="bg-background border rounded-lg p-3 flex-1 text-center">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Ahorrado</p>
+                        <p className="font-bold text-lg text-emerald-600">{goal.currency} {totalAmount.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-background border rounded-lg p-3 flex-1 text-center">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Presupuestado</p>
+                        <p className="font-bold text-lg text-primary">{goal.currency} {totalSpent.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-background border rounded-lg p-3 flex-1 text-center">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Por Cubrir</p>
+                        <p className={`font-bold text-lg ${totalSpent > totalAmount ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                          {goal.currency} {Math.max(0, totalSpent - totalAmount).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <TravelExpensesList goalId={goal.id} expenses={goal.travelExpenses || []} currency={goal.currency} totalSaved={totalAmount} />
+                  </div>
+                </div>
             </TabsContent>
 
             <TabsContent value="members" className="pt-6 space-y-6">
@@ -236,7 +288,11 @@ export default async function SharedGoalDetailsPage({ params }) {
               <CardDescription className="text-primary-foreground/80">Suma dinero al pozo colectivo.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ContributeModal goalId={goal.id} currency={goal.currency} />
+              <ContributeModal 
+                goalId={goal.id} 
+                currency={goal.currency} 
+                accounts={userAccounts}
+              />
             </CardContent>
           </Card>
           

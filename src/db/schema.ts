@@ -1,4 +1,4 @@
-import { pgTable, text, uuid, timestamp, decimal, boolean, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, text, uuid, timestamp, decimal, boolean, pgEnum, integer } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 // Enums
@@ -156,6 +156,7 @@ export const travelExpenses = pgTable('travel_expenses', {
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   category: text('category').default('Other').notNull(), // Transport, Lodging, Food, Activities
   color: text('color').default('#8884d8').notNull(),
+  priority: integer('priority').default(1).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
