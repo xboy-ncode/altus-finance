@@ -97,17 +97,22 @@ export default async function SharedGoalDetailsPage({ params, searchParams }) {
       <BreadcrumbOverride title={goal.title} />
 
       {/* Banner de Solicitudes (Solo Owner) */}
-      {isOwner && goal.isPublic && pendingMembers.length > 0 && (
-        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h4 className="font-semibold text-primary flex items-center gap-2">
-              <Users className="h-4 w-4" /> Tienes {pendingMembers.length} solicitud{pendingMembers.length > 1 ? 'es' : ''} de unión
-            </h4>
-            <p className="text-sm text-muted-foreground">Revisa la pestaña de Miembros para aceptar a tus amigos.</p>
+      {isOwner && pendingMembers.length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-500/20 p-2 rounded-full">
+              <Users className="h-4 w-4" />
+            </div>
+            <div>
+              <h4 className="font-semibold">Tienes {pendingMembers.length} solicitud{pendingMembers.length > 1 ? 'es' : ''} de unión</h4>
+              <p className="text-sm text-muted-foreground">Revisa la pestaña de Miembros para aceptar a tus amigos.</p>
+            </div>
           </div>
-          <Button variant="outline" className="shrink-0 text-primary border-primary hover:bg-primary hover:text-primary-foreground">
-            Ver Solicitudes
-          </Button>
+          <Link href={`/shared-planner/${goal.id}?tab=members`}>
+            <Button variant="outline" className="shrink-0 text-primary border-primary hover:bg-primary hover:text-primary-foreground">
+              Ver Solicitudes
+            </Button>
+          </Link>
         </div>
       )}
 
