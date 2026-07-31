@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/app/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/app/components/ui/dialog';
 import { Calendar} from '@/app/components/ui/calendar'
 import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Button } from '@/app/components/ui/button';
-import { Plus, Home, Zap, Wifi, Car, FileText, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Home, Zap, Wifi, Car, FileText, Calendar as CalendarIcon, Trash2, Check, X } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useTranslation } from 'react-i18next';
+import { addBill, deleteBill, markBillAsPaid } from '@/lib/actions/bills';
 
 const AddBillForm = ({ onAddBill, onCancel }) => {
     const { t } = useTranslation();
@@ -108,8 +110,45 @@ const UpcomingBills = ({ bills = [] }) => {
         return { status: 'upcoming', variant: 'secondary' };
     };
 
-    const handleAddBill = (newBill) => {
-        setBillsList(prevBills => [...prevBills, newBill]);
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
+
+    // Sincronizar billsList si los bills del servidor cambian
+    React.useEffect(() => {
+        setBillsList(bills);
+    }, [bills]);
+
+    const handleAddBill = async (newBill) => {
+        // Optimistic update
+        setBillsList(prevBills => [...prevBills, { ...newBill, isPaid: false }]);
+        
+        const res = await addBill(newBill);
+        if (res.success && res.bill) {
+            router.refresh();
+        } else {
+            console.error('Error adding bill:', res.error);
+            router.refresh(); // revert
+        }
+    };
+
+    const handleDeleteBill = async (id: string) => {
+        setBillsList(prevBills => prevBills.filter(b => b.id !== id));
+        const res = await deleteBill(id);
+        if (res.success) {
+            router.refresh();
+        } else {
+            router.refresh();
+        }
+    };
+
+    const handleTogglePaid = async (id: string, currentIsPaid: boolean) => {
+        setBillsList(prevBills => prevBills.map(b => b.id === id ? { ...b, isPaid: !currentIsPaid } : b));
+        const res = await markBillAsPaid(id, !currentIsPaid);
+        if (res.success) {
+            router.refresh();
+        } else {
+            router.refresh();
+        }
     };
 
     const ICON_MAP = {
@@ -155,13 +194,35 @@ const UpcomingBills = ({ bills = [] }) => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-right space-y-1">
-                                <div className="font-semibold text-sm">
-                                    {formatCurrency(bill.amount)}
+                            <div className="flex items-center gap-2">
+                                <div className="text-right space-y-1">
+                                    <div className="font-semibold text-sm">
+                                        {formatCurrency(bill.amount)}
+                                    </div>
+                                    <Badge variant={variant} className="text-xs">
+                                        {getStatusText()}
+                                    </Badge>
                                 </div>
-                                <Badge variant={variant} className="text-xs">
-                                    {getStatusText()}
-                                </Badge>
+                                <div className="flex flex-col gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-100" 
+                                        title={bill.isPaid ? 'Marcar como no pagado' : 'Marcar como pagado'}
+                                        onClick={() => handleTogglePaid(bill.id, bill.isPaid)}
+                                    >
+                                        {bill.isPaid ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-100" 
+                                        title="Eliminar pago"
+                                        onClick={() => handleDeleteBill(bill.id)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     );

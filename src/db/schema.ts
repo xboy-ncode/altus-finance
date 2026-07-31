@@ -52,6 +52,19 @@ export const transactions = pgTable('transactions', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
+// Bills
+export const bills = pgTable('bills', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  dueDate: timestamp('due_date').notNull(),
+  iconType: text('icon_type').default('file').notNull(),
+  color: text('color').default('bg-primary/10 text-primary').notNull(),
+  isPaid: boolean('is_paid').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 // Subscriptions (for SaaS Tier Control)
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -67,6 +80,7 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   accounts: many(accounts),
   transactions: many(transactions),
   categories: many(categories),
+  bills: many(bills),
 }))
 
 export const accountsRelations = relations(accounts, ({ one, many }) => ({
@@ -83,6 +97,10 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   user: one(profiles, { fields: [transactions.userId], references: [profiles.id] }),
   account: one(accounts, { fields: [transactions.accountId], references: [accounts.id] }),
   category: one(categories, { fields: [transactions.categoryId], references: [categories.id] }),
+}))
+
+export const billsRelations = relations(bills, ({ one }) => ({
+  user: one(profiles, { fields: [bills.userId], references: [profiles.id] }),
 }))
 
 // --- SHARED PLANNER (PoolGoals) ---

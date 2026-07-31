@@ -142,6 +142,8 @@ export async function addContribution(goalId, amount, note = '', accountId, exch
           ? (Number(amount) * Number(exchangeRate)).toFixed(2)
           : Number(amount).toFixed(2);
           
+        const descSuffix = account.currency === 'VES' ? ` (${Number(amount).toFixed(2)} USD a tasa ${Number(exchangeRate).toFixed(2)})` : '';
+
         // Actualizar balance
         await db.update(accounts)
           .set({
@@ -150,15 +152,15 @@ export async function addContribution(goalId, amount, note = '', accountId, exch
           .where(eq(accounts.id, accountId));
 
         // Consultar el nombre de la meta para la descripción
-        const [goal] = await db.select({ title: sharedGoals.title }).from(sharedGoals).where(eq(sharedGoals.id, goalId))
-        const goalName = goal ? goal.title : 'Meta Financiera';
+        const [goalQuery] = await db.select({ title: sharedGoals.title }).from(sharedGoals).where(eq(sharedGoals.id, goalId))
+        const goalName = goalQuery ? goalQuery.title : 'Meta Financiera';
 
         // Registrar la transacción
         await db.insert(transactions).values({
           userId: user.id,
           accountId: accountId,
           amount: `-${deductedAmount}`,
-          description: `Aporte a: ${goalName}`,
+          description: `Aporte a: ${goalName}${descSuffix}`,
           merchant: note || 'Meta Financiera',
           date: new Date(),
         })

@@ -38,7 +38,7 @@ const RecentTransactions = ({ transactions = [] }) => {
                             </div>
                             <div className="text-right">
                                 <div className={`font-semibold text-sm ${isIncome ? 'text-green-600' : 'text-red-600'}`}>
-                                    {isIncome ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount))}
+                                    {isIncome ? '+' : '-'} {formatCurrency(Math.abs(transaction.amount), transaction.currency)}
                                 </div>
                                 <div className="text-xs text-muted-foreground mt-0.5">
                                     {formatDate(transaction.date)}

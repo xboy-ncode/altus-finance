@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/db'
-import { accounts, transactions, categories } from '@/db/schema'
+import { accounts, transactions, categories, bills } from '@/db/schema'
 import { eq, and, gte, lte, sum, count, desc } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 
@@ -106,13 +106,31 @@ export async function GET(request) {
       .reduce((s, t) => s + Math.abs(getNormalizedAmount(t.amount, t.currency)), 0)
 
     // 3. Recent transactions (last 10)
-    const recentTransactions = await db.select().from(transactions)
+    const recentTransactions = await db.select({
+      id: transactions.id,
+      amount: transactions.amount,
+      date: transactions.date,
+      description: transactions.description,
+      categoryId: transactions.categoryId,
+      currency: accounts.currency
+    }).from(transactions)
+      .leftJoin(accounts, eq(transactions.accountId, accounts.id))
       .where(eq(transactions.userId, user.id))
       .orderBy(desc(transactions.date))
       .limit(10)
 
     // 4. Expenses by category
     const userCategories = await db.select().from(categories).where(eq(categories.userId, user.id))
+
+    // For each recent transaction, find the category name and icon manually since we didn't join categories there
+    const recentTxWithCategory = recentTransactions.map(tx => {
+      const cat = userCategories.find(c => c.id === tx.categoryId)
+      return {
+        ...tx,
+        category: cat ? cat.name : 'Sin categoría',
+        type: cat ? cat.type : (parseFloat(tx.amount) > 0 ? 'income' : 'expense')
+      }
+    })
     const expensesByCategory = userCategories.map(cat => {
       const catTotal = periodTransactions
         .filter(t => t.categoryId === cat.id && parseFloat(t.amount) < 0 && !isTransfer(t))
@@ -153,6 +171,11 @@ export async function GET(request) {
       })
     }
 
+    // 6. Upcoming Bills
+    const upcomingBills = await db.select().from(bills)
+      .where(eq(bills.userId, user.id))
+      .orderBy(bills.dueDate)
+
     return NextResponse.json({
       overview: {
         totalBalance: totalBalanceUSDT,
@@ -165,17 +188,10 @@ export async function GET(request) {
         netSavings: totalIncome - totalExpenses,
         accountCount: userAccounts.length,
       },
-      recentTransactions: recentTransactions.map(t => ({
-        id: t.id,
-        description: t.description,
-        amount: parseFloat(t.amount),
-        date: t.date,
-        categoryId: t.categoryId,
-        merchant: t.merchant,
-      })),
+      recentTransactions: recentTxWithCategory,
       expensesByCategory,
       monthlyBalance,
-      upcomingBills: [], // TODO: implementar facturas recurrentes
+      upcomingBills,
     })
   } catch (error) {
     console.error('Error en /api/dashboard:', error)

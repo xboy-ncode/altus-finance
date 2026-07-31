@@ -1,6 +1,6 @@
 import { db } from '@/db'
 import { sharedGoals, sharedGoalMembers } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/app/components/ui/button'
@@ -14,11 +14,11 @@ export default async function SharedPlannerPage() {
   let myGoals = []
   
   if (user) {
-    // Obtener los planes donde el usuario es miembro activo o dueño
+    // Obtener los planes donde el usuario es miembro activo, owner o pendiente
     const memberships = await db.query.sharedGoalMembers.findMany({
       where: and(
         eq(sharedGoalMembers.userId, user.id),
-        eq(sharedGoalMembers.status, 'active')
+        inArray(sharedGoalMembers.status, ['active', 'pending'])
       ),
       with: {
         goal: {
@@ -30,7 +30,7 @@ export default async function SharedPlannerPage() {
       }
     })
     
-    myGoals = memberships.map(m => m.goal)
+    myGoals = memberships.map(m => ({ ...m.goal, membershipStatus: m.status }))
   }
 
   return (
@@ -75,7 +75,12 @@ export default async function SharedPlannerPage() {
                     </div>
                   )}
                   <CardHeader className="pb-2">
-                    <CardTitle className="line-clamp-1">{goal.title}</CardTitle>
+                    <CardTitle className="line-clamp-1 flex items-center justify-between">
+                      {goal.title}
+                      {goal.membershipStatus === 'pending' && (
+                        <span className="text-xs bg-amber-500/10 text-amber-600 px-2 py-1 rounded-full border border-amber-500/20 font-medium">⏳ Pendiente</span>
+                      )}
+                    </CardTitle>
                     <p className="text-sm font-medium text-primary">
                       {goal.currency} {currentAmount} <span className="text-muted-foreground text-xs font-normal">de {goal.targetAmount}</span>
                     </p>

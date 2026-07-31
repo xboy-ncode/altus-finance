@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSharedGoal } from '@/lib/actions/shared-planner'
 import { Button } from '@/app/components/ui/button'
@@ -12,9 +12,13 @@ export default function NewSharedGoalPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const isSubmitting = useRef(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (isSubmitting.current) return
+    isSubmitting.current = true
+    
     setLoading(true)
     setError('')
 
