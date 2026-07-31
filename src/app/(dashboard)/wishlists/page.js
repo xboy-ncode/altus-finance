@@ -41,10 +41,10 @@ const AnimatedProgress = ({ value, colorClass }) => {
 };
 
 const ICONS = {
-    car: { icon: Car, label: 'Vehículo', bg: 'bg-blue-500/10', color: 'text-blue-500', fill: 'bg-blue-500' },
+    property: { icon: Car, label: 'Vehículo', bg: 'bg-blue-500/10', color: 'text-blue-500', fill: 'bg-blue-500' },
     travel: { icon: MapPin, label: 'Viaje', bg: 'bg-emerald-500/10', color: 'text-emerald-500', fill: 'bg-emerald-500' },
-    tech: { icon: Laptop, label: 'Tecnología', bg: 'bg-indigo-500/10', color: 'text-indigo-500', fill: 'bg-indigo-500' },
-    emergency: { icon: ShieldAlert, label: 'Emergencia', bg: 'bg-rose-500/10', color: 'text-rose-500', fill: 'bg-rose-500' },
+    product: { icon: Laptop, label: 'Tecnología', bg: 'bg-indigo-500/10', color: 'text-indigo-500', fill: 'bg-indigo-500' },
+    event: { icon: ShieldAlert, label: 'Emergencia', bg: 'bg-rose-500/10', color: 'text-rose-500', fill: 'bg-rose-500' },
     custom: { icon: Sparkles, label: 'Personalizado', bg: 'bg-amber-500/10', color: 'text-amber-500', fill: 'bg-amber-500' },
 };
 

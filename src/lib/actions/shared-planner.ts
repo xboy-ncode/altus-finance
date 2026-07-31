@@ -29,7 +29,7 @@ export async function createSharedGoal(data) {
       type: data.type || 'custom',
       targetAmount: data.targetAmount,
       currency: data.currency || 'USD',
-      targetDate: data.targetDate ? new Date(data.targetDate) : null,
+      targetDate: data.targetDate ? new Date(data.targetDate + 'T12:00:00Z') : null,
       inviteCode: inviteCode,
     }).returning()
 

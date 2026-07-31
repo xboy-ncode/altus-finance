@@ -7,7 +7,7 @@ import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/app/components/ui/dialog'
 import { Plus, Tag, Calendar as CalendarIcon, Trash2, Check, Hourglass, CheckCircle2, Pencil } from 'lucide-react'
-import { addTravelExpense, editTravelExpense } from '@/lib/actions/travel'
+import { addTravelExpense, editTravelExpense, deleteTravelExpense } from '@/lib/actions/travel'
 
 export default function TravelExpensesList({ goalId, expenses, currency, totalSaved = 0, targetAmount = 0 }) {
   const [open, setOpen] = useState(false)
@@ -51,17 +51,29 @@ export default function TravelExpensesList({ goalId, expenses, currency, totalSa
       res = await addTravelExpense(data)
     }
     
-    if (res.success) {
+    if (!res.success) {
+      alert(res.error)
+    } else {
       setOpen(false)
       setEditingExpense(null)
       router.refresh()
-    } else {
-      alert(res.error)
     }
     setLoading(false)
   }
 
-  function openEditModal(expense) {
+  async function handleDeleteExpense(id) {
+    if (!confirm('¿Seguro que deseas eliminar este ítem del presupuesto?')) return
+    setLoading(true)
+    const res = await deleteTravelExpense(id, goalId)
+    setLoading(false)
+    if (!res.success) {
+      alert(res.error)
+    } else {
+      router.refresh()
+    }
+  }
+
+  const openEditModal = (expense) => {
     setEditingExpense(expense)
     setOpen(true)
   }
@@ -185,9 +197,14 @@ export default function TravelExpensesList({ goalId, expenses, currency, totalSa
                       {currency} {expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEditModal(expense)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => openEditModal(expense)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteExpense(expense.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

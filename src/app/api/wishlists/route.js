@@ -97,6 +97,7 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('Error creating wishlist:', error);
+    require('fs').writeFileSync('/home/dev-joel/Documents/Github/Altus-Finance/wishlist-error.log', error.stack || error.toString());
     return NextResponse.json({ error: 'Failed to create wishlist' }, { status: 500 });
   }
 }

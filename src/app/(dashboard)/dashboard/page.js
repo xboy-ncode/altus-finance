@@ -107,6 +107,17 @@ export default function DashboardPage() {
                 <OverviewCards data={dashboardData?.overview} />
 
                 <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                    <Card className="xl:col-span-3 shadow-sm min-w-0">
+                        <CardHeader><CardTitle>{t('dashboard.recentTransactionsTitle')}</CardTitle></CardHeader>
+                        <CardContent className="h-96 overflow-y-auto"><RecentTransactions transactions={dashboardData?.recentTransactions} /></CardContent>
+                    </Card>
+                    <Card className="xl:col-span-2 shadow-sm min-w-0">
+                        <CardHeader><CardTitle>{t('dashboard.upcomingBillsTitle')}</CardTitle></CardHeader>
+                        <CardContent className="h-96 overflow-y-auto"><UpcomingBills bills={dashboardData?.upcomingBills} /></CardContent>
+                    </Card>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
                     <Card className="xl:col-span-3 shadow-sm hover:shadow-md transition-shadow min-w-0">
                         <CardHeader><CardTitle>{t('dashboard.monthlyBalanceTitle')}</CardTitle></CardHeader>
                         <CardContent className="h-96"><MonthlyBalanceChart data={dashboardData?.monthlyBalance} /></CardContent>
@@ -115,17 +126,6 @@ export default function DashboardPage() {
                     <Card className="xl:col-span-2 shadow-sm hover:shadow-md transition-shadow min-w-0">
                         <CardHeader><CardTitle>{t('dashboard.expenseByCategoryTitle')}</CardTitle></CardHeader>
                         <CardContent className="h-96"><ExpenseByCategoryChart data={dashboardData?.expensesByCategory} /></CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-                    <Card className="xl:col-span-3 shadow-sm min-w-0">
-                        <CardHeader><CardTitle>{t('dashboard.recentTransactionsTitle')}</CardTitle></CardHeader>
-                        <CardContent className="h-96 overflow-y-auto"><RecentTransactions transactions={dashboardData?.recentTransactions} /></CardContent>
-                    </Card>
-                    <Card className="xl:col-span-2 shadow-sm min-w-0">
-                        <CardHeader><CardTitle>{t('dashboard.upcomingBillsTitle')}</CardTitle></CardHeader>
-                        <CardContent className="h-96 overflow-y-auto"><UpcomingBills bills={dashboardData?.upcomingBills} /></CardContent>
                     </Card>
                 </div>
             </div>

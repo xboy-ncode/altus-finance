@@ -88,7 +88,7 @@ const AddBillForm = ({ onAddBill, onCancel }) => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="amount">Importe (€)</Label>
+                        <Label htmlFor="amount">Importe ($)</Label>
                         <Input
                             id="amount"
                             name="amount"

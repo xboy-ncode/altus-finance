@@ -48,7 +48,7 @@ const [date, setDate] = React.useState<Date | undefined>(new Date())
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="amount">Cantidad (€)</Label>
+                <Label htmlFor="amount">Cantidad ($)</Label>
                 <Input
                     id="amount"
                     type="number"

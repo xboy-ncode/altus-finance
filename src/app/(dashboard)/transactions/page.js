@@ -25,10 +25,11 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/app/components/ui/sheet';
-import { ArrowUpDown, Search, Plus, Pencil, Trash2, Eye, TrendingUp, TrendingDown, ArrowLeftRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, Search, Plus, Pencil, Trash2, Eye, TrendingUp, TrendingDown, ArrowLeftRight, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { useSettings } from '@/app/components/contexts/SettingsContext';
 import PageLoader from '@/app/components/ui/page-loader';
 import AddTransactionForm from '@/app/components/transactions/AddTransactionForm';
+import EditTransactionForm from '@/app/components/transactions/EditTransactionForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -62,6 +63,7 @@ export default function TransactionsPage() {
     const [typeFilter, setTypeFilter] = useState('all');
     const [selectedTx, setSelectedTx] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [editTarget, setEditTarget] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortOrder, setSortOrder] = useState('desc'); // 'desc' = newest first
@@ -130,12 +132,25 @@ export default function TransactionsPage() {
         setShowAddForm(false);
     };
 
+    const handleUpdateTransaction = async () => {
+        await fetchTransactions();
+        setEditTarget(null);
+    };
+
     // Reset page when filters change
     useEffect(() => { setCurrentPage(1); }, [searchText, categoryFilter, typeFilter]);
 
     return (
         <PageLoader loading={isLoading} message={t('common.loading')}>
             <div className="p-6 space-y-6">
+                {editTarget && (
+                    <EditTransactionForm
+                        transaction={editTarget}
+                        onUpdateTransaction={handleUpdateTransaction}
+                        onCancel={() => setEditTarget(null)}
+                    />
+                )}
+
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -253,6 +268,9 @@ export default function TransactionsPage() {
                                         <div className="md:col-span-2 flex items-center justify-end md:justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setSelectedTx(tx); }}>
                                                 <Eye className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); setEditTarget(tx); }}>
+                                                <Pencil className="h-3.5 w-3.5" />
                                             </Button>
                                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget(tx); }}>
                                                 <Trash2 className="h-3.5 w-3.5" />

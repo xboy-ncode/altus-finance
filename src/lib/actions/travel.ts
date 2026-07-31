@@ -80,3 +80,29 @@ export async function editTravelExpense(id, data) {
     return { success: false, error: 'Error al editar el ítem.' }
   }
 }
+
+export async function deleteTravelExpense(id, goalId) {
+  try {
+    const user = await getUser()
+
+    const member = await db.query.sharedGoalMembers.findFirst({
+      where: and(
+        eq(sharedGoalMembers.goalId, goalId),
+        eq(sharedGoalMembers.userId, user.id)
+      )
+    })
+
+    if (!member) {
+      return { success: false, error: 'No tienes permisos para este viaje.' }
+    }
+
+    await db.delete(travelExpenses).where(eq(travelExpenses.id, id))
+
+    revalidatePath(`/shared-planner/${goalId}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error deleting expense:', error)
+    return { success: false, error: 'Error al eliminar el ítem.' }
+  }
+}
+

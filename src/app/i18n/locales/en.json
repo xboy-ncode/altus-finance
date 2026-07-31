@@ -44,7 +44,7 @@
     "totalBalance": "Total Balance",
     "incomes": "Incomes",
     "expenses": "Expenses",
-    "savings": "Savings",
+    "savings": "Net Flow",
     "monthlyBalanceTitle": "Monthly Balance",
     "expenseByCategoryTitle": "Expenses by Category",
     "recentTransactionsTitle": "Recent Transactions",
