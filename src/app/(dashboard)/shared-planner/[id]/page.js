@@ -123,7 +123,7 @@ export default async function SharedGoalDetailsPage({ params, searchParams }) {
         </div>
         
         <div className="flex gap-2">
-           {!goal.isPublic ? null : (
+           {isOwner && (
              <div className="bg-muted px-4 py-2 rounded-md flex items-center gap-2 border border-border/50">
                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Código de Invitación</span>
                <span className="font-mono font-bold tracking-widest">{goal.inviteCode}</span>
