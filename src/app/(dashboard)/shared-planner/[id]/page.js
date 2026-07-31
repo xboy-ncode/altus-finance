@@ -224,9 +224,15 @@ export default async function SharedGoalDetailsPage({ params, searchParams }) {
                       </div>
                     </div>
                   </div>
-                  <div className="flex-1 overflow-hidden">
-                    <TravelExpensesList goalId={goal.id} expenses={goal.travelExpenses || []} currency={goal.currency} totalSaved={totalAmount} />
-                  </div>
+                  <CardContent className="flex-1 overflow-hidden">
+                    <TravelExpensesList 
+                      goalId={goal.id} 
+                      expenses={goal.travelExpenses || []} 
+                      currency={goal.currency} 
+                      totalSaved={totalAmount} 
+                      targetAmount={target}
+                    />
+                  </CardContent>
                 </div>
             </TabsContent>
 

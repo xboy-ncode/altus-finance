@@ -9,12 +9,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Tag, Calendar as CalendarIcon, Trash2, Check, Hourglass, CheckCircle2, Pencil } from 'lucide-react'
 import { addTravelExpense, editTravelExpense } from '@/lib/actions/travel'
 
-export default function TravelExpensesList({ goalId, expenses, currency, totalSaved = 0 }) {
+export default function TravelExpensesList({ goalId, expenses, currency, totalSaved = 0, targetAmount = 0 }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-
+  
   const [editingExpense, setEditingExpense] = useState(null)
+  
+  // Calculate total assigned expenses
+  const totalAssigned = expenses.reduce((acc, curr) => acc + Number(curr.amount), 0)
+  const availableBudget = Math.max(0, targetAmount - totalAssigned)
 
   async function handleAddExpense(e) {
     e.preventDefault()
@@ -27,6 +31,17 @@ export default function TravelExpensesList({ goalId, expenses, currency, totalSa
       category: formData.get('category'),
       color: formData.get('color'),
       priority: formData.get('priority')
+    }
+    
+    const expenseAmount = Number(data.amount)
+    const currentAssigned = editingExpense 
+      ? totalAssigned - Number(editingExpense.amount) 
+      : totalAssigned
+
+    if (currentAssigned + expenseAmount > targetAmount) {
+      alert(`El gasto supera el límite de la meta. Tienes asignado ${currentAssigned} ${currency} de ${targetAmount} ${currency}. Puedes asignar máximo ${targetAmount - currentAssigned} ${currency}.`)
+      setLoading(false)
+      return
     }
     
     let res
@@ -83,6 +98,11 @@ export default function TravelExpensesList({ goalId, expenses, currency, totalSa
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingExpense ? 'Editar Ítem' : 'Registrar Gasto'}</DialogTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                Asignado: <span className="font-semibold text-foreground">{totalAssigned.toLocaleString()}</span> / {targetAmount.toLocaleString()} {currency}
+                <br />
+                Disponible para asignar: <span className="font-semibold text-emerald-600 dark:text-emerald-500">{availableBudget.toLocaleString()} {currency}</span>
+              </p>
             </DialogHeader>
             <form onSubmit={handleAddExpense} className="space-y-4 pt-4">
               <div className="grid grid-cols-2 gap-4">
