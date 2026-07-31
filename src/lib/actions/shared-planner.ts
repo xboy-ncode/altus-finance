@@ -139,8 +139,8 @@ export async function addContribution(goalId, amount, note = '', accountId, exch
         // Calcular el monto a descontar según la moneda de la cuenta
         // Si la cuenta es VES, multiplicamos el aporte (USD) por la tasa (exchangeRate)
         const deductedAmount = account.currency === 'VES' 
-          ? (parseFloat(amount) * parseFloat(exchangeRate)).toFixed(2)
-          : parseFloat(amount).toFixed(2);
+          ? (Number(amount) * Number(exchangeRate)).toFixed(2)
+          : Number(amount).toFixed(2);
           
         // Actualizar balance
         await db.update(accounts)
